@@ -145,7 +145,7 @@ class WarpedTrackerClient:
         return self._tracker.log_component_summary(summary_data=summary_data)
 
 
-class ModelBase(object):
+class Module:
     component_name = None
 
     @classmethod
