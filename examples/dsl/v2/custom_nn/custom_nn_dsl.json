@@ -1,0 +1,18 @@
+{
+    "components": {
+        "custom_nn_0": {
+            "module": "Custom NN",
+            "input": {
+                "data": {}
+            },
+            "output": {
+                "data": [
+                    "data"
+                ],
+                "model": [
+                    "model"
+                ]
+            }
+        }
+    }
+}
