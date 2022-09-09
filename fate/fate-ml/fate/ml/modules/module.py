@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #  Copyright 2019 The FATE Authors. All Rights Reserved.
 #
@@ -15,18 +13,20 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
 import copy
 import typing
 
-import numpy as np
-from google.protobuf import json_format
 
 from fate_arch.computing import is_table
 from federatedml.callbacks.callback_list import CallbackList
 from federatedml.feature.instance import Instance
 from federatedml.param.evaluation_param import EvaluateParam
 from federatedml.protobuf import deserialize_models
-from federatedml.statistic.data_overview import header_alignment, predict_detail_dict_to_str
+from federatedml.statistic.data_overview import (
+    header_alignment,
+    predict_detail_dict_to_str,
+)
 from federatedml.util import LOGGER, abnormal_detection
 from federatedml.util.anonymous_generator_util import Anonymous
 from federatedml.util.component_properties import ComponentProperties, RunningFuncs
@@ -34,6 +34,8 @@ from federatedml.util.io_check import assert_match_id_consistent
 
 
 def serialize_models(models):
+    from google.protobuf import json_format
+
     serialized_models: typing.Dict[str, typing.Tuple[str, bytes, dict]] = {}
 
     for model_name, buffer_object in models.items():
@@ -156,14 +158,9 @@ class Module:
     def get_component_name(cls):
         return cls.component_name
 
-    def __init__(self):
-        self.model_output = None
-        self.mode = None
-        self.role = None
-        self.data_output = None
-        self.cache_output = None
-        self.model_param = None
-        self.transfer_variable = None
+    def __init__(self, cpn_param):
+        self.model_param = cpn_param
+        # self.callback_list = CallbackList(self.role, self.mode, self)
         self.flowid = ""
         self.task_version_id = ""
         self.need_one_vs_rest = False
@@ -194,18 +191,6 @@ class Module:
     def stop_training(self):
         return self.callback_variables.stop_training
 
-    @property
-    def need_cv(self):
-        return self.component_properties.need_cv
-
-    @property
-    def need_run(self):
-        return self.component_properties.need_run
-
-    @need_run.setter
-    def need_run(self, value: bool):
-        self.component_properties.need_run = value
-
     def _init_model(self, model):
         pass
 
@@ -218,7 +203,7 @@ class Module:
         # self.need_run = need_run
         self.component_properties.need_run = need_run
 
-    def run(self, cpn_input, retry: bool = True):
+    def run(self, cpn_input, datasets, retry: bool = True):
         self.task_version_id = cpn_input.task_version_id
         self.tracker = cpn_input.tracker
         self.checkpoint_manager = cpn_input.checkpoint_manager
@@ -228,7 +213,7 @@ class Module:
         # retry
         if (
             retry
-            and hasattr(self, '_retry')
+            and hasattr(self, "_retry")
             and callable(self._retry)
             and self.checkpoint_manager is not None
             and self.checkpoint_manager.latest_checkpoint is not None
@@ -236,7 +221,7 @@ class Module:
             self._retry(cpn_input=cpn_input)
         # normal
         else:
-            self._run(cpn_input=cpn_input)
+            self._run(cpn_input=cpn_input, datasets=datasets)
 
         return ComponentOutput(self.save_data(), self._export(), self.save_cache())
 
@@ -247,11 +232,10 @@ class Module:
             meta = self._export_meta()
             export_dict = {"Meta": meta, "Param": model}
         except NotImplementedError:
-            export_dict = self.export_model()
-
-            # export nothing, return
-            if export_dict is None:
-                return export_dict
+            try:
+                export_dict = self.export_model()
+            except AttributeError:
+                return None
 
             try:
                 meta_name = [k for k in export_dict if k.endswith("Meta")][0]
@@ -280,56 +264,86 @@ class Module:
     def _export_model(self):
         raise NotImplementedError("_export_model not implemented")
 
-    def _run(self, cpn_input) -> None:
-        # paramters
-        self.model_param.update(cpn_input.parameters)
-        self.model_param.check()
+    def _run(self, cpn_input, datasets) -> None:
+        # role info
         self.component_properties.parse_component_param(
             cpn_input.roles, self.model_param
         )
         self.role = self.component_properties.role
-        self.component_properties.parse_dsl_args(cpn_input.datasets, cpn_input.models)
+
         self.component_properties.parse_caches(cpn_input.caches)
-        self.anonymous_generator = Anonymous(role=self.role, party_id=self.component_properties.local_partyid)
+        self.anonymous_generator = Anonymous(
+            role=self.role, party_id=self.component_properties.local_partyid
+        )
         # init component, implemented by subclasses
         self._init_model(self.model_param)
 
-        self.callback_list = CallbackList(self.role, self.mode, self)
         if hasattr(self.model_param, "callback_param"):
             callback_param = getattr(self.model_param, "callback_param")
             self.callback_list.init_callback_list(callback_param)
 
-        running_funcs = self.component_properties.extract_running_rules(
-            datasets=cpn_input.datasets, models=cpn_input.models, cpn=self
-        )
-        LOGGER.debug(f"running_funcs: {running_funcs.todo_func_list}")
-        saved_result = []
-        for func, params, save_result, use_previews in running_funcs:
-            # for func, params in zip(todo_func_list, todo_func_params):
-            if use_previews:
-                if params:
-                    real_param = [saved_result, params]
-                else:
-                    real_param = saved_result
-                LOGGER.debug("func: {}".format(func))
-                this_data_output = func(*real_param)
-                saved_result = []
+        train_data, validate_data, test_data, data = datasets.get_datas()
+        schema = datasets.schema
+        models = cpn_input.models
+
+        ## run strategy
+        # case 1: not need run, pass data
+        if not self.need_run:
+            self._skip_run(data)
+
+        # case 2: cross validate
+        elif self.need_cv:
+            self._cv_run(train_data)
+
+        # case 3: stepwise
+        elif self.need_stepwise:
+            self._stepwise_run(train_data, schema)
+
+        # case 4: xx
+        else:
+            if self.has_model or self.has_isometric_model:
+                self.load_model(models)
+
+            if self.is_warm_start:
+                self._warm_start_run(train_data, validate_data, schema)
+
             else:
-                this_data_output = func(*params)
+                self._train_run(train_data, validate_data, test_data, schema)
 
-            if save_result:
-                saved_result.append(this_data_output)
+                if self.has_normal_input_data and not self.has_model:
+                    running_funcs.add_func(cpn.extract_data, [data], save_result=True)
+                    running_funcs.add_func(cpn.set_flowid, ["fit"])
+                    running_funcs.add_func(
+                        cpn.fit, [], use_previews=True, save_result=True
+                    )
 
-        if len(saved_result) == 1:
-            self.data_output = saved_result[0]
-            # LOGGER.debug("One data: {}".format(self.data_output.first()[1].features))
-        LOGGER.debug(
-            "saved_result is : {}, data_output: {}".format(
-                saved_result, self.data_output
-            )
-        )
-        # self.check_consistency()
+                if self.has_normal_input_data and self.has_model:
+                    running_funcs.add_func(cpn.extract_data, [data], save_result=True)
+                    running_funcs.add_func(cpn.set_flowid, ["transform"])
+                    running_funcs.add_func(
+                        cpn.transform, [], use_previews=True, save_result=True
+                    )
+
+        # final, save summary
         self.save_summary()
+
+    def _skip_run(self, data):
+        if isinstance(data, dict) and len(data) >= 1:
+            self.data_output = list(data.values())[0]
+
+    def _cv_run(self, train_data):
+        self.data_output = self.cross_validation(train_data)
+
+    def _stepwise_run(self, train_data, schema):
+        stepwise_output = self.stepwise(train_data)
+        union_output = union_data([stepwise_output], ["train"])
+        self.data_output = self.set_predict_data_schema([union_output], [schema])
+
+    def _warmstart_run(self):
+        self.warm_start_process(running_funcs, cpn, train_data, validate_data, schema)
+
+    def _train_run(self):
+        ...
 
     def _retry(self, cpn_input) -> None:
         self.model_param.update(cpn_input.parameters)
@@ -354,7 +368,7 @@ class Module:
             test_data,
             data,
         ) = self.component_properties.extract_input_data(
-            datasets=cpn_input.datasets, model=self
+            datasets=cpn_input.datasets, cpn=self
         )
 
         running_funcs = RunningFuncs()
@@ -440,16 +454,13 @@ class Module:
     def save_data(self):
         return self.data_output
 
-    def export_model(self):
-        return self.model_output
-
     def save_cache(self):
-        return self.cache_output
+        if hasattr(self, "cache_output"):
+            return getattr(self, "cache_output")
 
     def set_flowid(self, flowid):
         # self.flowid = '.'.join([self.task_version_id, str(flowid)])
         self.flowid = flowid
-        self.set_transfer_variable()
 
     def set_transfer_variable(self):
         if self.transfer_variable is not None:
@@ -495,7 +506,7 @@ class Module:
                     "type",
                 ],
                 "sid": schema.get("sid"),
-                "content_type": "predict_result"
+                "content_type": "predict_result",
             }
             if schema.get("match_id_name") is not None:
                 predict_data.schema["match_id_name"] = schema.get("match_id_name")
@@ -522,10 +533,13 @@ class Module:
         # regression
         if classes is None:
             predict_result = data_instances.join(
-                predict_score, lambda d, pred: [d.label,
-                                                pred,
-                                                pred,
-                                                predict_detail_dict_to_str({"label": pred})]
+                predict_score,
+                lambda d, pred: [
+                    d.label,
+                    pred,
+                    pred,
+                    predict_detail_dict_to_str({"label": pred}),
+                ],
             )
         # binary
         elif isinstance(classes, list) and len(classes) == 2:
@@ -542,7 +556,9 @@ class Module:
                     x[0],
                     y,
                     x[1],
-                    predict_detail_dict_to_str({class_neg_name: (1 - x[1]), class_pos_name: x[1]})
+                    predict_detail_dict_to_str(
+                        {class_neg_name: (1 - x[1]), class_pos_name: x[1]}
+                    ),
                 ],
             )
 
@@ -557,7 +573,7 @@ class Module:
                     x,
                     int(classes[np.argmax(y)]),
                     float(np.max(y)),
-                    predict_detail_dict_to_str(dict(zip(classes, list(y))))
+                    predict_detail_dict_to_str(dict(zip(classes, list(y)))),
                 ],
             )
         else:
@@ -752,3 +768,24 @@ class Module:
         if isinstance(data_list, list):
             return data_list[0]
         return data_list
+
+    def parse_component_param(self, param):
+        try:
+            need_cv = param.cv_param.need_cv
+        except AttributeError:
+            need_cv = False
+        self.need_cv = need_cv
+
+        try:
+            need_run = param.need_run
+        except AttributeError:
+            need_run = True
+        self.need_run = need_run
+        LOGGER.debug("need_run: {}, need_cv: {}".format(self.need_run, self.need_cv))
+
+        try:
+            need_stepwise = param.stepwise_param.need_stepwise
+        except AttributeError:
+            need_stepwise = False
+        self.need_stepwise = need_stepwise
+

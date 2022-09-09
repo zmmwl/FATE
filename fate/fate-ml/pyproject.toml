@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "fate-ml"
+version = "2.0.0"
+description = "better federatedml"
+authors = ["weiwee <wbwmat@gmail.com>"]
+license = "Apache-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

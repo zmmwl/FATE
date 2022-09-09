@@ -127,7 +127,12 @@ class ComponentMeta:
         return runner_class
 
     def get_run_obj(self, role: str):
-        return self._get_runner(role)()
+        from fate.ml.modules import Runner
+
+        cpn_class = self._get_runner(role)
+        cpn_param = self.get_param_obj("aa")
+        runner = Runner(cpn_class, cpn_param)
+        return runner
 
     def get_run_obj_name(self, role: str) -> str:
         return self._get_runner(role).__name__
@@ -146,7 +151,7 @@ class ComponentMeta:
 
 
 def _get_module_name_by_path(path, base):
-    return '.'.join(path.resolve().relative_to(base.resolve()).with_suffix('').parts)
+    return ".".join(path.resolve().relative_to(base.resolve()).with_suffix("").parts)
 
 
 def _search_components(path, base):
@@ -171,7 +176,7 @@ class Components:
 
     @classmethod
     def _components_base(cls):
-        return Path(cls.provider_path, 'components').resolve()
+        return Path(cls.provider_path, "components").resolve()
 
     @classmethod
     def get_names(cls) -> typing.Dict[str, dict]:

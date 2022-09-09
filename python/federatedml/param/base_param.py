@@ -64,6 +64,15 @@ class BaseParam(metaclass=_StaticDefaultMeta):
         self._name = name
         return self
 
+    def get(self, names, default):
+        cur = self
+        for name in names.split("."):
+            try:
+                getattr(cur, name)
+            except AttributeError:
+                return default
+        return cur
+
     def check(self):
         raise NotImplementedError("Parameter Object should be checked.")
 
