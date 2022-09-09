@@ -1,16 +1,29 @@
+from contextlib import contextmanager
 import typing
-from fate.ml.modules.module import Metric
+from fate.ml.context.tracker import Metric
 from federatedml.callbacks.callback_list import CallbackList
 from federatedml.util.anonymous_generator_util import Anonymous
 
 
 class Context:
-    def __init__(self) -> None:
+    def __init__(self, namespace=None) -> None:
         self._anonymous_generator = None
         self._role = None
         self._party_id = None
         self._tracker = None
+        self.namespace = namespace
 
+    @contextmanager
+    def namespace(self, name):
+        try:
+            yield self.with_namespace(name)
+        finally:
+            # set global context as self
+            ...
+
+    def with_namespace(self, name) -> "Context":
+        # return context with namespace changed
+        ...
 
     def callback_list(self):
         self._callback_list = CallbackList(self.role, self.mode, self)

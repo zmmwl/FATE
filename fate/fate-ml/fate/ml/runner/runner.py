@@ -1,12 +1,14 @@
+import typing
 from typing import Any, Optional, Type
 
 from fate.ml.context import Context
-from fate.ml.modules.data import Datasets
-from fate.ml.modules.module import ComponentOutput, Module, WarpedTrackerClient
+from fate.ml.context.tracker import WarpedTrackerClient
+from fate.ml.module.module import Module
+from fate.ml.runner.data import Datasets
+from fate.ml.runner.model import Models, serialize_models
 from federatedml.callbacks.callback_list import CallbackList
 from federatedml.model_selection.stepwise.hetero_stepwise import HeteroStepwise
 from federatedml.param.base_param import BaseParam
-from federatedml.protobuf import deserialize_models
 from federatedml.util import LOGGER, consts
 
 
@@ -30,6 +32,33 @@ class Runner:
         return ComponentOutput(output, cpn._export(), cpn.save_cache())
 
 
+class ComponentOutput:
+    def __init__(self, data, models, cache: typing.List[tuple]) -> None:
+        self._data = data
+        if not isinstance(self._data, list):
+            self._data = [data]
+
+        self._models = models
+        if self._models is None:
+            self._models = {}
+
+        self._cache = cache
+        if not isinstance(self._cache, list):
+            self._cache = [cache]
+
+    @property
+    def data(self) -> list:
+        return self._data
+
+    @property
+    def model(self):
+        return serialize_models(self._models)
+
+    @property
+    def cache(self):
+        return self._cache
+
+
 def prepare(cpn_class, cpn_param, cpn_input):
     # update params
     cpn_param.update(cpn_input.parameters)
@@ -41,10 +70,9 @@ def prepare(cpn_class, cpn_param, cpn_input):
     datasets = Datasets.parse(cpn_input.datasets, cpn)
 
     # deserialize models
-    models = cpn_input.models
-    deserialize_models(models)
+    models = Models.parse(cpn_input.models)
 
-    # emmm...
+    # emmm, should move to ctx in future
     cpn.tracker = cpn_input.tracker
     cpn.checkpoint_manager = cpn_input.checkpoint_manager
 
@@ -55,7 +83,7 @@ def prepare(cpn_class, cpn_param, cpn_input):
 
 
 def dispatch_run(
-    ctx, cpn: "Module", params: BaseParam, datasets: "Datasets", models: dict
+    ctx: Context, cpn: "Module", params: BaseParam, datasets: "Datasets", models: dict
 ) -> Optional[Any]:
     # situation: what we have
     has_model = models.get("model") is not None
@@ -78,6 +106,7 @@ def dispatch_run(
     is_test = (not has_test_data) and has_test_data
     is_transform_fit = has_data and (not has_model)
     is_transform = has_data and has_model
+    # TODO: one vs rest?
 
     LOGGER.debug(
         f"{is_skip_run=}, {is_cv=}, {is_stepwise=}, {is_warm_start=}, {is_train_with_validate=}, {is_train_without_validate=}, {is_test=}, {is_transform_fit=}, {is_transform=}"
@@ -91,6 +120,10 @@ def dispatch_run(
     # case 2: cross validate
     if is_cv:
         # TODO: need advice
+        # should be something like
+        # for fold_id in range(n_Fold):
+        #     with ctx.namespace(f"cv_{fold_id}") as fold_ctx:
+        #         cpn.xxx(fold_ctx, ...)
         from federatedml.model_selection.k_fold import KFold
 
         kflod_obj = KFold()
@@ -120,9 +153,7 @@ def dispatch_run(
         stepwise_param = _get_stepwise_param(cpn)
         step_obj.run(stepwise_param, datasets.train_data, datasets.validate_data, cpn)
         pred_result = HeteroStepwise.predict(datasets.train_data, cpn)
-        return pred_result
-
-        union_output = union_data([output], ["train"])
+        union_output = union_data([pred_result], ["train"])
         return cpn.set_predict_data_schema(union_output, datasets.schema)
 
     # maybe load model
@@ -136,40 +167,40 @@ def dispatch_run(
         )
 
     if is_train_with_validate:
-        cpn.set_flowid("fit")
-        cpn.fit(datasets.train_data, datasets.validate_data)
-        cpn.set_flowid("predict")
-        predict_on_validate_data = cpn.predict(datasets.train_data)
-        cpn.set_flowid("validate")
-        predict_on_train_data = cpn.predict(datasets.validate_data)
+        with ctx.namespace("fit") as subctx:
+            cpn.fit(subctx, datasets.train_data, datasets.validate_data)
+        with ctx.namespace("predict") as subctx:
+            predict_on_validate_data = cpn.predict(subctx, datasets.train_data)
+        with ctx.namespace("validate") as subctx:
+            predict_on_train_data = cpn.predict(subctx, datasets.validate_data)
         union_output = union_data(
             [predict_on_validate_data, predict_on_train_data], ["train", "validate"]
         )
         return cpn.set_predict_data_schema(union_output, datasets.schema)
 
     if is_train_without_validate:
-        cpn.set_flowid("fit")
-        cpn.fit(datasets.train_data)
-        cpn.set_flowid("predict")
-        predict_on_train_data = cpn.predict(datasets.validate_data)
+        with ctx.namespace("fit") as subctx:
+            cpn.fit(subctx,datasets.train_data)
+        with ctx.namespace("predict") as subctx:
+            predict_on_train_data = cpn.predict(subctx, datasets.validate_data)
         union_output = union_data([predict_on_train_data], ["train"])
         return cpn.set_predict_data_schema(union_output, datasets.schema)
 
     if is_test:
-        cpn.set_flowid("predict")
-        predict_on_test_data = cpn.predict(datasets.test_data)
+        with ctx.namespace("predict") as subctx:
+            predict_on_test_data = cpn.predict(subctx, datasets.test_data)
         union_output = union_data([predict_on_test_data], ["predict"])
         return cpn.set_predict_data_schema(union_output, datasets.schema)
 
     if is_transform_fit:
         data = cpn.extract_data(datasets.data)
-        cpn.set_flowid("fit")
-        return cpn.fit(ctx, data)
+        with ctx.namespace("fit") as subctx:
+            return cpn.fit(subctx, data)
 
     if is_transform:
         data = cpn.extract_data(datasets.data)
-        cpn.set_flowid("transform")
-        return cpn.transform(data)
+        with ctx.namespace("transform") as subctx:
+            return cpn.transform(subctx, data)
 
 
 def union_data(previews_data, name_list):
