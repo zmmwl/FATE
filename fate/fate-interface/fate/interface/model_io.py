@@ -21,7 +21,7 @@ class ModelSaver:
     def save_bytes(self, key: str, bytes_value):
         self._states[key] = bytes_value
 
-
+# TODO: multiple, ie: model and isometric_model
 class ModelLoader:
     def __init__(self, states) -> None:
         self.states = states

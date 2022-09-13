@@ -1,3 +1,6 @@
+import typing
+
+
 class MetricType:
     LOSS = "LOSS"
 
@@ -30,9 +33,13 @@ class MetricMeta:
             extra_metas=self.extra_metas,
         )
 
-class WarpedTrackerClient:
+class Tracker:
     def __init__(self, tracker) -> None:
         self._tracker = tracker
+
+    @classmethod
+    def parse(cls, tracker):
+        return Tracker(tracker)
 
     def log_metric_data(
         self, metric_namespace: str, metric_name: str, metrics: typing.List[Metric]
