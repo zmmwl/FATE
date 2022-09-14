@@ -1,5 +1,6 @@
-from fate.core.context import Context
-from fate.interface.module import Module
+from typing import List
+
+from fate.interface import Context, Dataframe, ModelsLoader, ModelsSaver, Module, Params
 from federatedml.model_selection.k_fold import KFold
 
 from ..parser.data import Datasets
@@ -7,12 +8,20 @@ from .procedure import Procedure
 
 
 class CrossValidation(Procedure):
+    @classmethod
+    def is_fulfilled(cls, params: Params, datasets: Datasets, models_loader: ModelsLoader) -> bool:
+        return params.is_need_cv
 
-    @property
-    def is_activate(self):
-        return self.situations.has_model and self.situations.has_train_data
-
-    def run(self, ctx: Context, cpn: Module, params, datasets: Datasets):
+    @classmethod
+    def run(
+        cls,
+        ctx: Context,
+        cpn: Module,
+        params: Params,
+        datasets: Datasets,
+        models_loader: ModelsLoader,
+        models_saver: ModelsSaver,
+    ) -> List[Dataframe]:
         kflod_obj = KFold()
         params.cv_param.role = ctx.role
         params.cv_param.mode = cpn.mode

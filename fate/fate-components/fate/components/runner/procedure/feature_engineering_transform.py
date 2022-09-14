@@ -1,17 +1,28 @@
-from fate.core.context import Context
-from fate.interface.module import Module
+from typing import List
+
+from fate.interface import Context, Dataframe, ModelsLoader, ModelsSaver, Module, Params
 
 from ..parser.data import Datasets
 from .procedure import Procedure
 
 
 class FeatureEngineeringTransform(Procedure):
-    def is_activate(self):
-        return self.situations.has_data and self.situations.has_model
+    @classmethod
+    def is_fulfilled(cls, params: Params, datasets: Datasets, models_loader: ModelsLoader) -> bool:
+        return datasets.has_data and models_loader.has_model
 
-    def run(self, ctx: Context, cpn: Module, params, datasets: Datasets, models):
-        if self.has_model:
-            cpn.load_model(models)
+    @classmethod
+    def run(
+        cls,
+        ctx: Context,
+        cpn: Module,
+        params: Params,
+        datasets: Datasets,
+        models_loader: ModelsLoader,
+        models_saver: ModelsSaver,
+    ) -> List[Dataframe]:
+        if models_loader.has_model or models_loader.has_isometric_model:
+            cpn.load_model(ctx, models_loader)
         data = cpn.extract_data(datasets.data)
-        with ctx.namespace("transform") as subctx:
+        with ctx.sub_ctx("transform") as subctx:
             return cpn.transform(subctx, data)

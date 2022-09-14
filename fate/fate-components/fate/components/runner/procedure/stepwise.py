@@ -1,16 +1,26 @@
-from fate.core.context import Context
-from fate.interface.module import Module
-from federatedml.model_selection.k_fold import KFold
+from typing import List
+
+from fate.interface import Context, Dataframe, ModelsLoader, ModelsSaver, Module, Params
 
 from ..parser.data import Datasets
 from .procedure import Procedure
 
 
 class Stepwise(Procedure):
-    def is_activate(self):
-        return self.situations.need_stepwise
+    @classmethod
+    def is_fulfilled(cls, params: Params, datasets: Datasets, models_loader: ModelsLoader) -> bool:
+        return params.is_need_stepwise
 
-    def run(self, ctx: Context, cpn: Module, params, datasets: Datasets):
+    @classmethod
+    def run(
+        cls,
+        ctx: Context,
+        cpn: Module,
+        params: Params,
+        datasets: Datasets,
+        models_loader: ModelsLoader,
+        models_saver: ModelsSaver,
+    ) -> List[Dataframe]:
         cpn.disable_callback_loss()  # TODO: cpn need aware about stepwise
         if cpn.mode == consts.HETERO:
             step_obj = HeteroStepwise()

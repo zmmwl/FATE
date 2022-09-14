@@ -1,55 +1,89 @@
+import contextlib
+from dataclasses import dataclass
 import typing
-from federatedml.protobuf import get_proto_buffer_class
-from fate.interface import ModelLoader
+from collections.abc import Iterator
+
+from fate.interface import ModelReader, ModelsLoader, ModelMeta
+from fate.interface import ModelWriter, ModelsSaver
 
 
-class PbModelLoader(ModelLoader):
-    def __init__(self, model) -> None:
-        self.model = model
+@dataclass
+class PBModelMeta(ModelMeta):
+    meta_data: dict
+    meta_type: str = "protobuf"
+    meta_version: str = "v1"
 
-    def read_bytes(self, key):
-        ...
 
-class Models:
-    def __init__(self, model=None, isometric_model=None) -> None:
-        self.model = model
-        self.isometric_model = isometric_model
-        self.has_model = model is not None
-        self.has_isometric_model = isometric_model is not None
+class PBModelReader(ModelReader):
+    def __init__(self, pb_name, pb_buffer) -> None:
+        self.pb_name = pb_name
+        self.pb_buffer = pb_buffer
 
-    def get_model(self):
-        return PbModelLoader(self.model)
+    def read_meta(self) -> ModelMeta:
+        return PBModelMeta(dict(pb_name=self.pb_name))
 
-    def get_isometric_model(self):
-        return PbModelLoader(self.isometric_model)
+    def read_bytes(self):
+        return self.pb_buffer
+
+
+class PBModelsLoader(ModelsLoader):
+    """
+    implement of modelloader for fate.components used by fate.flow
+    """
+
+    def __init__(self, models) -> None:
+        self.models = models
+
+    def names(self) -> typing.List[typing.Tuple[str, str, str]]:
+        return list(self.models.keys())
+
+    @contextlib.contextmanager
+    def with_name(self, name: typing.Tuple[str, str, str]) -> Iterator[ModelReader]:
+        if (pb_pair := self.models.get(name)) is not None:
+            model_reader = PBModelReader(*pb_pair)
+            yield model_reader
 
     @classmethod
-    def parse(cls, model_input):
-        for model_type, models in model_input.items():
+    def parse(cls, cpn_model_input):
+        models = {}
+        for model_type, models in cpn_model_input.items():
             for cpn_name, cpn_models in models.items():
                 for model_name, (pb_name, pb_buffer) in cpn_models.items():
-                    pb_object = get_proto_buffer_class(pb_name)()
-                    pb_object.ParseFromString(pb_buffer)
-                    model_input[model_type][cpn_name][model_name] = pb_object
-        return model_input
+                    models[(model_type, cpn_name, model_name)] = (
+                        pb_name,
+                        pb_buffer,
+                    )
+        return PBModelsLoader(models)
+
+    @property
+    def has_model(self):
+        return "model" in [model_type for model_type, _, _ in self.models.keys()]
+
+    @property
+    def has_isometric_model(self):
+        return "isometric_model" in [
+            model_type for model_type, _, _ in self.models.keys()
+        ]
 
 
-def serialize_models(models):
-    from google.protobuf import json_format
+class PBModelWriter(ModelWriter):
+    def __init__(self) -> None:
+        self.meta = None
+        self.buffer = None
 
-    serialized_models: typing.Dict[str, typing.Tuple[str, bytes, dict]] = {}
+    def write_meta(self, meta: ModelMeta):
+        self.meta = meta
 
-    for model_name, buffer_object in models.items():
-        serialized_string = buffer_object.SerializeToString()
-        pb_name = type(buffer_object).__name__
-        json_format_dict = json_format.MessageToDict(
-            buffer_object, including_default_value_fields=True
-        )
+    def write_bytes(self, buffer):
+        self.buffer = buffer
 
-        serialized_models[model_name] = (
-            pb_name,
-            serialized_string,
-            json_format_dict,
-        )
 
-    return serialized_models
+class PBModelsSaver(ModelsSaver):
+    def __init__(self) -> None:
+        self.models = {}
+
+    @contextlib.contextmanager
+    def with_name(self, name: typing.Tuple[(str, str, str)]) -> Iterator[PBModelWriter]:
+        model_writer = PBModelWriter()
+        yield model_writer
+        self.models[name] = (model_writer.meta, model_writer.buffer)
