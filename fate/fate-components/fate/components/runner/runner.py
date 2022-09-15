@@ -7,13 +7,13 @@ from .context import ComponentContext, Namespace
 from .parser.checkpoint import CheckpointManager
 from .parser.data import Datasets
 from .parser.model import PBModelsLoader, PBModelsSaver
-from .parser.param import Param
+from .parser.param import Params
 from .parser.tracker import Tracker
 from .procedure import Dispatcher
 
 
 class Runner:
-    def __init__(self, cpn_class: Type[Module], cpn_param: Param):
+    def __init__(self, cpn_class: Type[Module], cpn_param: Params):
         self.cpn_class = cpn_class
         self.cpn_param = cpn_param
 
@@ -57,4 +57,4 @@ class Runner:
             model: dict
             cache: List[tuple]
 
-        return _CpnOutput(data_outputs, models_saver.models, ctx.cache_output.cache)
+        return _CpnOutput(data_outputs, models_saver.models, ctx.cache.cache)

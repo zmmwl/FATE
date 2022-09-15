@@ -1,4 +1,4 @@
-from fate.interface import Param
+from fate.interface import Params
 
-class MLParam(Param):
+class MLParam(Params):
     ...

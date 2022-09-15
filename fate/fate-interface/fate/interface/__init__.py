@@ -3,7 +3,7 @@ from ._cache import Cache
 from ._context import Context
 from ._cpn_io import CpnOutput
 from ._data_io import Dataframe
-from ._metric import Metric, Metrics
+from ._metric import Metric, Metrics, MetricMeta
 from ._model_io import ModelMeta, ModelReader, ModelsLoader, ModelsSaver, ModelWriter
 from ._module import Module
 from ._param import Params
@@ -25,6 +25,7 @@ __all__ = [
     "Cache",
     "Metrics",
     "Metric",
+    "MetricMeta",
     "Anonymous",
     "CheckpointManager",
 ]

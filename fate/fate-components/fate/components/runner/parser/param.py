@@ -1,6 +1,6 @@
-from fate.interface import Param as ParamInterface
+from fate.interface import Params as ParamInterface
 
-class Param(ParamInterface):
+class Params(ParamInterface):
     def __init__(self):
         pass
 

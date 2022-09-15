@@ -1,10 +1,31 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import dataclass
 from typing import List, Optional
 
 from fate.interface import Anonymous, Cache, CheckpointManager
 from fate.interface import Context as ContextInterface
-from fate.interface import Metric, Metrics, Summary
+from fate.interface import Metric as MetricInterface
+from fate.interface import MetricMeta as MetricMetaInterface
+from fate.interface import Metrics, Summary
+
+
+@dataclass
+class Metric(MetricInterface):
+    key: str
+    value: float
+    timestamp: Optional[float] = None
+
+
+class MetricMeta(MetricMetaInterface):
+    def __init__(self, name: str, metric_type: str, extra_metas: Optional[dict] = None):
+        self.name = name
+        self.metric_type = metric_type
+        self.metas = {}
+        self.extra_metas = extra_metas
+
+    def update_metas(self, metas: dict):
+        self.metas.update(metas)
 
 
 class DummySummary(Summary):
@@ -12,18 +33,45 @@ class DummySummary(Summary):
     dummy summary save nowhre
     """
 
+    def __init__(self) -> None:
+        self._summary = {}
+
+    @property
+    def summary(self):
+        return self._summary
+
     def save(self):
         pass
 
+    def reset(self, summary: dict):
+        self._summary = summary
+
+    def add(self, key: str, value):
+        self._summary[key] = value
+
 
 class DummyMetrics(Metrics):
-    def log(self, name: str, namespace: str, metric_data: List[Metric]):
-        pass
+    def __init__(self) -> None:
+        self._data = []
+        self._meta = []
+
+    def log(self, name: str, namespace: str, data: List[Metric]):
+        self._data.append((name, namespace, data))
+
+    def log_meta(self, name: str, namespace: str, meta: MetricMeta):
+        self._meta.append((name, namespace, meta))
+
+    def log_warmstart_init_iter(self, iter_num):  # FIXME: strange here
+        ...
 
 
 class DummyCache(Cache):
     def __init__(self) -> None:
         self.cache = []
+
+    def add_cache(self, key, value):
+        self.cache.append((key, value))
+
 
 # FIXME: vary complex to use, may take times to fix
 class DummyAnonymous(Anonymous):
@@ -31,7 +79,7 @@ class DummyAnonymous(Anonymous):
 
 
 class DummyCheckpointManager(CheckpointManager):
-        ...
+    ...
 
 
 class Namespace:
