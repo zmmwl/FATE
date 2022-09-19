@@ -13,3 +13,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from eggroll.roll_pair.roll_pair import RollPair
+from ...abc import AddressABC, CTableABC
+
+
+# noinspection PyAbstractClass
+class Table(CTableABC):
+
+    def __init__(self, rp: RollPair):
+        self._rp: RollPair = ...
+        ...
+
+    def save(self, address: AddressABC, partitions: int, schema: dict, **kwargs): ...

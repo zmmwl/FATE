@@ -13,3 +13,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import os
+
+import dotenv
+import typing
+
+from .file_utils import get_project_base_directory
+
+
+def get_versions() -> typing.Mapping[str, typing.Any]:
+    return dotenv.dotenv_values(
+        dotenv_path=os.path.join(get_project_base_directory(), "fate.env")
+    )
+
+
+def get_eggroll_version() -> typing.Optional[str]:
+    return get_versions().get("EGGROLL")
+
+
+def get_fate_version() -> typing.Optional[str]:
+    return get_versions().get("FATE")

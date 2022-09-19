@@ -13,3 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from ._table import StorageTable
+from ._session import StorageSession
+
+__all__ = ["StorageTable", "StorageSession"]

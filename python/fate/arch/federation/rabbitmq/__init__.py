@@ -13,3 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+from ._federation import Federation, MQ, RabbitManager
+
+__all__ = ['Federation', 'MQ', 'RabbitManager']

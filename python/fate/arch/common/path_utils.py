@@ -13,3 +13,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+import os
+
+from .file_utils import load_yaml_conf
+
+
+def get_data_table_count(path):
+    config_path = os.path.join(path, "config.yaml")
+    config = load_yaml_conf(conf_path=config_path)
+    count = 0
+    if config:
+        if config.get("type") != "vision":
+            raise Exception(f"can not support this type {config.get('type')}")
+        ext = config.get("inputs").get("ext")
+        base_dir = os.path.join(path, "images")
+        for file_name in os.listdir(base_dir):
+            if file_name.endswith(ext):
+                count += 1
+    return count
