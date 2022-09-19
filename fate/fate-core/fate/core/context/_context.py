@@ -1,6 +1,7 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+import logging
 from typing import List, Optional
 
 from fate.interface import Anonymous, Cache, CheckpointManager
@@ -8,6 +9,9 @@ from fate.interface import Context as ContextInterface
 from fate.interface import Metric as MetricInterface
 from fate.interface import MetricMeta as MetricMetaInterface
 from fate.interface import Metrics, Summary
+from fate.interface import Logger as LoggerInterface, LOGMSG
+
+from logging import getLogger, Logger
 
 
 @dataclass
@@ -107,6 +111,40 @@ class Namespace:
         return ".".join(self.namespaces)
 
 
+class DummyLogger(LoggerInterface):
+    def __init__(self, level=logging.DEBUG) -> None:
+        self.logger = getLogger("fate.dummy")
+        self.logger.setLevel(level)
+
+        # console
+        formatter = logging.Formatter(
+            "%(asctime)s - %(pathname)s:%(lineno)s - %(levelname)s - %(message)s"
+        )
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_handler.setFormatter(formatter)
+
+        self.logger.addHandler(console_handler)
+
+    def log(self, level: int, msg: LOGMSG):
+        if Logger.isEnabledFor(self.logger, level):
+            if callable(msg):
+                msg = msg()
+            self.logger.log(level, msg, stacklevel=3)
+
+    def info(self, msg: LOGMSG):
+        return self.log(logging.INFO, msg)
+
+    def debug(self, msg: LOGMSG):
+        return self.log(logging.INFO, msg)
+
+    def error(self, msg: LOGMSG):
+        return self.log(logging.INFO, msg)
+
+    def warning(self, msg: LOGMSG):
+        return self.log(logging.INFO, msg)
+
+
 class Context(ContextInterface):
     """
     implement fate.interface.ContextInterface
@@ -125,6 +163,7 @@ class Context(ContextInterface):
         cache: Cache = DummyCache(),
         anonymous_generator: Anonymous = DummyAnonymous(),
         checkpoint_manager: CheckpointManager = DummyCheckpointManager(),
+        log: DummyLogger = DummyLogger(),
         namespace: Optional[Namespace] = None,
     ) -> None:
         if namespace is None:
@@ -139,6 +178,7 @@ class Context(ContextInterface):
         self.cache = cache
         self.anonymous_generator = anonymous_generator
         self.checkpoint_manager = checkpoint_manager
+        self.log = log
 
     @contextmanager
     def sub_ctx(self, namespace) -> Iterator["Context"]:

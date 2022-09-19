@@ -6,7 +6,7 @@ from ._cache import Cache
 from ._metric import Metrics
 from ._anonymous import Anonymous
 from ._checkpoint import CheckpointManager
-
+from ._log import Logger
 
 class Context(Protocol):
     role: str
@@ -16,6 +16,7 @@ class Context(Protocol):
     cache: Cache
     anonymous_generator: Anonymous
     checkpoint_manager: CheckpointManager
+    log: Logger
 
     @contextmanager
     def sub_ctx(self, namespace) -> Iterator["Context"]:

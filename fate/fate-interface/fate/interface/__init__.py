@@ -9,6 +9,7 @@ from ._module import Module
 from ._param import Params
 from ._summary import Summary
 from ._checkpoint import CheckpointManager
+from ._log import Logger, LOGMSG
 
 __all__ = [
     "Module",
@@ -28,4 +29,6 @@ __all__ = [
     "MetricMeta",
     "Anonymous",
     "CheckpointManager",
+    "Logger",
+    "LOGMSG",
 ]

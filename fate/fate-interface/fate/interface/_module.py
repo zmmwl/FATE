@@ -1,15 +1,15 @@
 from typing import Optional, Protocol, List
 
-from .context import Context
-from .data_io import Dataframe
-from .model_io import ModelsLoader, ModelsSaver
-from .param import Param
+from ._context import Context
+from ._data_io import Dataframe
+from ._model_io import ModelsLoader, ModelsSaver
+from ._param import Params
 
 
 class Module(Protocol):
     mode: str
 
-    def __init__(self, params: Param) -> None:
+    def __init__(self, params: Params) -> None:
         ...
 
     def fit(
