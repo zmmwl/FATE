@@ -18,4 +18,4 @@
 from ._type import ComputingEngine
 from ._util import is_table
 
-__all__ = ['is_table', 'ComputingEngine']
+__all__ = ["is_table", "ComputingEngine"]

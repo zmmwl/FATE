@@ -151,7 +151,10 @@ def phe_tensor_decryptor_metaclass(phe_cls, fp_cls):
 
 
 def phe_tensor_cipher_metaclass(
-    phe_cls, phe_encrypt_cls, phe_decrypt_cls, block_cipher,
+    phe_cls,
+    phe_encrypt_cls,
+    phe_decrypt_cls,
+    block_cipher,
 ):
     class PHETensorCipherMetaclass(type):
         def __new__(cls, name, bases, dict):

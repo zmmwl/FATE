@@ -17,7 +17,14 @@ import inspect
 import os
 import sys
 
-from peewee import CharField, IntegerField, BigIntegerField, TextField, CompositeKey, BooleanField
+from peewee import (
+    CharField,
+    IntegerField,
+    BigIntegerField,
+    TextField,
+    CompositeKey,
+    BooleanField,
+)
 
 from ..federation import FederationEngine
 from ..metastore.base_model import DateTimeField
@@ -29,8 +36,10 @@ from ..metastore.base_model import JSONField, SerializedField, BaseModel
 LOGGER = log.getLogger()
 
 DATABASE = decrypt_database_config()
-is_standalone = conf_utils.get_base_config("default_engines", {}).get(EngineType.FEDERATION).upper() == \
-    FederationEngine.STANDALONE
+is_standalone = (
+    conf_utils.get_base_config("default_engines", {}).get(EngineType.FEDERATION).upper()
+    == FederationEngine.STANDALONE
+)
 
 
 def singleton(cls, *args, **kw):
@@ -52,9 +61,13 @@ class BaseDataBase(object):
         db_name = database_config.pop("name")
         if is_standalone and not bool(int(os.environ.get("FORCE_USE_MYSQL", 0))):
             from playhouse.apsw_ext import APSWDatabase
-            self.database_connection = APSWDatabase(file_utils.get_project_base_directory("fate_sqlite.db"))
+
+            self.database_connection = APSWDatabase(
+                file_utils.get_project_base_directory("fate_sqlite.db")
+            )
         else:
             from playhouse.pool import PooledMySQLDatabase
+
             self.database_connection = PooledMySQLDatabase(db_name, **database_config)
 
 
@@ -121,9 +134,9 @@ class StorageTableMetaModel(DataBaseModel):
     f_schema = SerializedField()
     f_count = BigIntegerField(null=True)
     f_part_of_data = SerializedField()
-    f_origin = CharField(max_length=50, default='')
+    f_origin = CharField(max_length=50, default="")
     f_disable = BooleanField(default=False)
-    f_description = TextField(default='')
+    f_description = TextField(default="")
 
     f_read_access_time = BigIntegerField(null=True)
     f_read_access_date = DateTimeField(null=True)
@@ -132,7 +145,7 @@ class StorageTableMetaModel(DataBaseModel):
 
     class Meta:
         db_table = "t_storage_table_meta"
-        primary_key = CompositeKey('f_name', 'f_namespace')
+        primary_key = CompositeKey("f_name", "f_namespace")
 
 
 class SessionRecord(DataBaseModel):

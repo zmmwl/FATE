@@ -77,7 +77,9 @@ class Table(CTableABC):
             #     .toDF()
             # )
             LOGGER.debug(f"partitions: {partitions}")
-            _repartition = self._rdd.map(lambda x: hive_utils.to_row(x[0], x[1])).repartition(partitions)
+            _repartition = self._rdd.map(
+                lambda x: hive_utils.to_row(x[0], x[1])
+            ).repartition(partitions)
             _repartition.toDF().write.saveAsTable(f"{address.database}.{address.name}")
             schema.update(self.schema)
             return
@@ -133,7 +135,9 @@ class Table(CTableABC):
     @computing_profile
     def mapPartitionsWithIndex(self, func, preserves_partitioning=False, **kwargs):
         return from_rdd(
-            self._rdd.mapPartitionsWithIndex(func, preservesPartitioning=preserves_partitioning)
+            self._rdd.mapPartitionsWithIndex(
+                func, preservesPartitioning=preserves_partitioning
+            )
         )
 
     @computing_profile
@@ -212,13 +216,12 @@ def from_hdfs(paths: str, partitions, in_serialized=True, id_delimiter=None):
     from pyspark import SparkContext
 
     sc = SparkContext.getOrCreate()
-    fun = hdfs_utils.deserialize if in_serialized else lambda x: (x.partition(id_delimiter)[0],
-                                                                  x.partition(id_delimiter)[2])
-    rdd = materialize(
-        sc.textFile(paths, partitions)
-        .map(fun)
-        .repartition(partitions)
+    fun = (
+        hdfs_utils.deserialize
+        if in_serialized
+        else lambda x: (x.partition(id_delimiter)[0], x.partition(id_delimiter)[2])
     )
+    rdd = materialize(sc.textFile(paths, partitions).map(fun).repartition(partitions))
     return Table(rdd=rdd)
 
 
@@ -227,13 +230,12 @@ def from_localfs(paths: str, partitions, in_serialized=True, id_delimiter=None):
     from pyspark import SparkContext
 
     sc = SparkContext.getOrCreate()
-    fun = hdfs_utils.deserialize if in_serialized else lambda x: (x.partition(id_delimiter)[0],
-                                                                  x.partition(id_delimiter)[2])
-    rdd = materialize(
-        sc.textFile(paths, partitions)
-        .map(fun)
-        .repartition(partitions)
+    fun = (
+        hdfs_utils.deserialize
+        if in_serialized
+        else lambda x: (x.partition(id_delimiter)[0], x.partition(id_delimiter)[2])
     )
+    rdd = materialize(sc.textFile(paths, partitions).map(fun).repartition(partitions))
     return Table(rdd=rdd)
 
 

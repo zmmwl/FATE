@@ -16,4 +16,4 @@
 
 from ._federation import Federation, MQ, RabbitManager
 
-__all__ = ['Federation', 'MQ', 'RabbitManager']
+__all__ = ["Federation", "MQ", "RabbitManager"]

@@ -122,15 +122,11 @@ class PHETensorDistributed(PHETensorABC):
     ) -> "PHETensorDistributed":
         return self._binary_op_limited(other, "__rmul__")
 
-    def __matmul__(
-        self, other: FPTensorDistributed
-    ) -> "PHETensorDistributed":
+    def __matmul__(self, other: FPTensorDistributed) -> "PHETensorDistributed":
         # TODO: impl me
         ...
 
-    def __rmatmul__(
-        self, other: FPTensorDistributed
-    ) -> "PHETensorDistributed":
+    def __rmatmul__(self, other: FPTensorDistributed) -> "PHETensorDistributed":
         # TODO: impl me
         ...
 

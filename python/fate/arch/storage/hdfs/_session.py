@@ -21,14 +21,34 @@ from ...common.address import HDFSAddress
 
 class StorageSession(StorageSessionBase):
     def __init__(self, session_id, options=None):
-        super(StorageSession, self).__init__(session_id=session_id, engine=StorageEngine.HDFS)
+        super(StorageSession, self).__init__(
+            session_id=session_id, engine=StorageEngine.HDFS
+        )
 
-    def table(self, address: AddressABC, name, namespace, partitions, store_type=None, options=None, **kwargs):
+    def table(
+        self,
+        address: AddressABC,
+        name,
+        namespace,
+        partitions,
+        store_type=None,
+        options=None,
+        **kwargs,
+    ):
         if isinstance(address, HDFSAddress):
             from ._table import StorageTable
-            return StorageTable(address=address, name=name, namespace=namespace,
-                                partitions=partitions, store_type=store_type, options=options)
-        raise NotImplementedError(f"address type {type(address)} not supported with hdfs storage")
+
+            return StorageTable(
+                address=address,
+                name=name,
+                namespace=namespace,
+                partitions=partitions,
+                store_type=store_type,
+                options=options,
+            )
+        raise NotImplementedError(
+            f"address type {type(address)} not supported with hdfs storage"
+        )
 
     def cleanup(self, name, namespace):
         pass

@@ -1,5 +1,3 @@
-
-
 class EngineType(object):
     COMPUTING = "computing"
     STORAGE = "storage"
@@ -58,6 +56,7 @@ class BaseType:
             else:
                 data = obj
             return {"type": obj.__class__.__name__, "data": data, "module": module}
+
         return _dict(self)
 
 

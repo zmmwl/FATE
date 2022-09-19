@@ -54,7 +54,7 @@ class StorageTable(StorageTableBase):
             address=address,
             partitions=partitions,
             name=name,
-            namespace=namespace
+            namespace=namespace,
         )
         return table
 

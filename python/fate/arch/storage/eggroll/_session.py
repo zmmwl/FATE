@@ -23,21 +23,42 @@ from eggroll.roll_pair.roll_pair import RollPairContext
 
 class StorageSession(StorageSessionBase):
     def __init__(self, session_id, options=None):
-        super(StorageSession, self).__init__(session_id=session_id, engine=StorageEngine.EGGROLL)
+        super(StorageSession, self).__init__(
+            session_id=session_id, engine=StorageEngine.EGGROLL
+        )
         self._options = options if options else {}
-        self._options['eggroll.session.deploy.mode'] = "cluster"
-        self._rp_session = session_init(session_id=self._session_id, options=self._options)
+        self._options["eggroll.session.deploy.mode"] = "cluster"
+        self._rp_session = session_init(
+            session_id=self._session_id, options=self._options
+        )
         self._rpc = RollPairContext(session=self._rp_session)
         self._session_id = self._rp_session.get_session_id()
 
-    def table(self, name, namespace,
-              address: AddressABC, partitions,
-              store_type: EggRollStoreType = EggRollStoreType.ROLLPAIR_LMDB, options=None, **kwargs):
+    def table(
+        self,
+        name,
+        namespace,
+        address: AddressABC,
+        partitions,
+        store_type: EggRollStoreType = EggRollStoreType.ROLLPAIR_LMDB,
+        options=None,
+        **kwargs,
+    ):
         if isinstance(address, EggRollAddress):
             from ._table import StorageTable
-            return StorageTable(context=self._rpc, name=name, namespace=namespace, address=address,
-                                partitions=partitions, store_type=store_type, options=options)
-        raise NotImplementedError(f"address type {type(address)} not supported with eggroll storage")
+
+            return StorageTable(
+                context=self._rpc,
+                name=name,
+                namespace=namespace,
+                address=address,
+                partitions=partitions,
+                store_type=store_type,
+                options=options,
+            )
+        raise NotImplementedError(
+            f"address type {type(address)} not supported with eggroll storage"
+        )
 
     def cleanup(self, name, namespace):
         self._rpc.cleanup(name=name, namespace=namespace)

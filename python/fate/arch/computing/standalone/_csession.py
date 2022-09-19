@@ -59,6 +59,7 @@ class CSession(CSessionABC):
         if isinstance(address, PathAddress):
             from ...computing.non_distributed import LocalData
             from ...computing import ComputingEngine
+
             return LocalData(address.path, engine=ComputingEngine.STANDALONE)
         raise NotImplementedError(
             f"address type {type(address)} not supported with standalone backend"
@@ -89,5 +90,7 @@ class CSession(CSessionABC):
         try:
             self.stop()
         except Exception as e:
-            LOGGER.warning(f"stop storage session {self.session_id} failed, try to kill", e)
+            LOGGER.warning(
+                f"stop storage session {self.session_id} failed, try to kill", e
+            )
             self.kill()

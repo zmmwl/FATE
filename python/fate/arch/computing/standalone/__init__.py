@@ -17,4 +17,4 @@
 from ._csession import CSession
 from ._table import Table
 
-__all__ = ['Table', 'CSession']
+__all__ = ["Table", "CSession"]

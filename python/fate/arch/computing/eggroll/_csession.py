@@ -55,15 +55,15 @@ class CSession(CSessionABC):
         if isinstance(address, EggRollAddress):
             options = kwargs.get("option", {})
             options["total_partitions"] = partitions
-            options["store_type"] = kwargs.get("store_type", EggRollStoreType.ROLLPAIR_LMDB)
+            options["store_type"] = kwargs.get(
+                "store_type", EggRollStoreType.ROLLPAIR_LMDB
+            )
             options["create_if_missing"] = False
             rp = self._rpc.load(
                 namespace=address.namespace, name=address.name, options=options
             )
             if rp is None or rp.get_partitions() == 0:
-                raise RuntimeError(
-                    f"no exists: {address.name}, {address.namespace}"
-                )
+                raise RuntimeError(f"no exists: {address.name}, {address.namespace}")
 
             if options["store_type"] != EggRollStoreType.ROLLPAIR_IN_MEMORY:
                 rp = rp.save_as(
@@ -82,6 +82,7 @@ class CSession(CSessionABC):
         if isinstance(address, PathAddress):
             from ...computing.non_distributed import LocalData
             from ...computing import ComputingEngine
+
             return LocalData(address.path, engine=ComputingEngine.EGGROLL)
 
         raise NotImplementedError(
@@ -115,5 +116,7 @@ class CSession(CSessionABC):
         try:
             self.stop()
         except Exception as e:
-            LOGGER.warning(f"stop storage session {self.session_id} failed, try to kill", e)
+            LOGGER.warning(
+                f"stop storage session {self.session_id} failed, try to kill", e
+            )
             self.kill()

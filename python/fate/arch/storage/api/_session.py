@@ -23,18 +23,38 @@ from ...common.address import ApiAddress
 
 class StorageSession(StorageSessionBase):
     def __init__(self, session_id, options=None):
-        super(StorageSession, self).__init__(session_id=session_id, engine=StorageEngine.PATH)
-        self.base_dir = os.path.join(file_utils.get_project_base_directory(), "api_data", session_id)
+        super(StorageSession, self).__init__(
+            session_id=session_id, engine=StorageEngine.PATH
+        )
+        self.base_dir = os.path.join(
+            file_utils.get_project_base_directory(), "api_data", session_id
+        )
 
-    def table(self, address: AddressABC, name, namespace, partitions, store_type=None, options=None, **kwargs):
+    def table(
+        self,
+        address: AddressABC,
+        name,
+        namespace,
+        partitions,
+        store_type=None,
+        options=None,
+        **kwargs,
+    ):
         if isinstance(address, ApiAddress):
             from ._table import StorageTable
-            return StorageTable(path=os.path.join(self.base_dir, namespace, name),
-                                address=address,
-                                name=name,
-                                namespace=namespace,
-                                partitions=partitions, store_type=store_type, options=options)
-        raise NotImplementedError(f"address type {type(address)} not supported with api storage")
+
+            return StorageTable(
+                path=os.path.join(self.base_dir, namespace, name),
+                address=address,
+                name=name,
+                namespace=namespace,
+                partitions=partitions,
+                store_type=store_type,
+                options=options,
+            )
+        raise NotImplementedError(
+            f"address type {type(address)} not supported with api storage"
+        )
 
     def cleanup(self, name, namespace):
         # path = os.path.join(self.base_dir, namespace, name)

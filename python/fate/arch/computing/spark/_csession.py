@@ -35,23 +35,23 @@ class CSession(CSessionABC):
 
     def load(self, address: AddressABC, partitions, schema, **kwargs):
         from ...common.address import HDFSAddress
+
         if isinstance(address, HDFSAddress):
             table = from_hdfs(
                 paths=f"{address.name_node}/{address.path}",
                 partitions=partitions,
-                in_serialized=kwargs.get(
-                    "in_serialized",
-                    True),
-                id_delimiter=kwargs.get(
-                    "id_delimiter",
-                    ','))
+                in_serialized=kwargs.get("in_serialized", True),
+                id_delimiter=kwargs.get("id_delimiter", ","),
+            )
             table.schema = schema
             return table
 
         from ...common.address import PathAddress
+
         if isinstance(address, PathAddress):
             from ...computing.non_distributed import LocalData
             from ...computing import ComputingEngine
+
             return LocalData(address.path, engine=ComputingEngine.SPARK)
 
         from ...common.address import HiveAddress, LinkisHiveAddress
@@ -67,9 +67,11 @@ class CSession(CSessionABC):
 
         if isinstance(address, LocalFSAddress):
             table = from_localfs(
-                paths=address.path, partitions=partitions, in_serialized=kwargs.get(
-                    "in_serialized", True), id_delimiter=kwargs.get(
-                    "id_delimiter", ','))
+                paths=address.path,
+                partitions=partitions,
+                in_serialized=kwargs.get("in_serialized", True),
+                id_delimiter=kwargs.get("id_delimiter", ","),
+            )
             table.schema = schema
             return table
 
@@ -80,6 +82,7 @@ class CSession(CSessionABC):
     def parallelize(self, data: Iterable, partition: int, include_key: bool, **kwargs):
         # noinspection PyPackageRequirements
         from pyspark import SparkContext
+
         _iter = data if include_key else enumerate(data)
         rdd = SparkContext.getOrCreate().parallelize(_iter, partition)
         return from_rdd(rdd)

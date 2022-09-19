@@ -192,7 +192,11 @@ class Context:
         return Context(states, namespace)
 
     def describe(self):
-        return json.dumps(dict(states=self._inside.describe(),))
+        return json.dumps(
+            dict(
+                states=self._inside.describe(),
+            )
+        )
 
     @property
     def party(self):
@@ -232,7 +236,11 @@ class Context:
     def push(self, target: Parties, key: str, value):
         return self._push(target.get_parties(), key, value)
 
-    def pull(self, source: Parties, key: str,) -> Future:
+    def pull(
+        self,
+        source: Parties,
+        key: str,
+    ) -> Future:
         return Future(self._pull(source.get_parties(), key)[0])
 
     def pulls(self, source: Parties, key: str) -> Futures:
@@ -314,7 +322,14 @@ class Context:
             assert first_dim_approx > 0
             for i in range(num_partition):
                 if i == num_partition - 1:
-                    parts.append(torch.rand((last_part_first_dim, *shape[1:],)))
+                    parts.append(
+                        torch.rand(
+                            (
+                                last_part_first_dim,
+                                *shape[1:],
+                            )
+                        )
+                    )
                 else:
                     parts.append(torch.rand((first_dim_approx, *shape[1:])))
             return FPTensor(
