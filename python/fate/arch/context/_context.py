@@ -3,7 +3,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from logging import Logger, getLogger
-from typing import List, Optional
+from typing import List, Literal, Optional, Tuple
 
 from fate.interface import LOGMSG, Anonymous, Cache, CheckpointManager
 from fate.interface import Context as ContextInterface
@@ -11,6 +11,9 @@ from fate.interface import Logger as LoggerInterface
 from fate.interface import Metric as MetricInterface
 from fate.interface import MetricMeta as MetricMetaInterface
 from fate.interface import Metrics, Summary
+
+from ._federation import GC, _PartyUtil
+from ._namespace import Namespace
 
 
 @dataclass
@@ -85,31 +88,6 @@ class DummyCheckpointManager(CheckpointManager):
     ...
 
 
-class Namespace:
-    """
-    Summary, Metrics may be namespace awared:
-    ```
-    namespace = Namespace()
-    ctx = Context(...summary=XXXSummary(namespace))
-    ```
-    """
-
-    def __init__(self) -> None:
-        self.namespaces = []
-
-    @contextmanager
-    def into_subnamespace(self, subnamespace: str):
-        self.namespaces.append(subnamespace)
-        try:
-            yield self
-        finally:
-            self.namespaces.pop()
-
-    @property
-    def namespace(self):
-        return ".".join(self.namespaces)
-
-
 class DummyLogger(LoggerInterface):
     def __init__(self, level=logging.DEBUG) -> None:
         self.logger = getLogger("fate.dummy")
@@ -155,8 +133,8 @@ class Context(ContextInterface):
 
     def __init__(
         self,
-        role: str,
-        party_id: str,
+        local_party: Tuple[Literal["guest", "host", "arbiter"], str],
+        parties: Optional[List[Tuple[Literal["guest", "host", "arbiter"], str]]] = None,
         summary: Summary = DummySummary(),
         metrics: Metrics = DummyMetrics(),
         cache: Cache = DummyCache(),
@@ -170,8 +148,7 @@ class Context(ContextInterface):
         else:
             self.namespace = namespace
 
-        self.role = role
-        self.party_id = party_id
+        self.role, self.party_id = local_party
         self.summary = summary
         self.metrics = metrics
         self.cache = cache
@@ -179,7 +156,26 @@ class Context(ContextInterface):
         self.checkpoint_manager = checkpoint_manager
         self.log = log
 
+        self._party_util = _PartyUtil.parse(local_party, parties)
+        self._gc = GC()
+
     @contextmanager
     def sub_ctx(self, namespace) -> Iterator["Context"]:
         with self.namespace.into_subnamespace(namespace):
             yield self
+
+    @property
+    def guest(self):
+        self._party_util.create_party("guest", self, self.namespace, self._gc)
+
+    @property
+    def hosts(self):
+        self._party_util.create_parties("host", self, self.namespace, self._gc)
+
+    @property
+    def arbiter(self):
+        self._party_util.create_party("arbiter", self, self.namespace, self._gc)
+
+    @property
+    def parties(self):
+        return self._party_util.all_parties(self, self.namespace, self._gc)

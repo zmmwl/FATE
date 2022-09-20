@@ -22,7 +22,7 @@ from fate.arch.session import get_session
 from typing_extensions import Literal
 
 
-from ._parties import Parties, PreludeParty
+from ..federation._parties import Parties, PreludeParty
 from .abc.tensor import PHEDecryptorABC, PHEEncryptorABC, PHETensorABC
 from ._federation import FederationDeserializer
 
@@ -69,60 +69,6 @@ class Distributed(Enum):
 
 
 T = TypeVar("T")
-
-
-class Future:
-    """
-    `get` maybe async in future, in this version,
-    we wrap obj to support explicit typing and check
-    """
-
-    def __init__(self, inside) -> None:
-        self._inside = inside
-
-    def unwrap_tensor(self) -> "FPTensor":
-
-        assert isinstance(self._inside, FPTensor)
-        return self._inside
-
-    def unwrap_phe_encryptor(self) -> "PHEEncryptor":
-        assert isinstance(self._inside, PHEEncryptor)
-        return self._inside
-
-    def unwrap_phe_tensor(self) -> "PHETensor":
-
-        assert isinstance(self._inside, PHETensor)
-        return self._inside
-
-    def unwrap(self, check: Optional[Callable[[T], bool]] = None) -> T:
-        if check is not None and not check(self._inside):
-            raise TypeError(f"`{self._inside}` check failed")
-        return self._inside
-
-
-class Futures:
-    def __init__(self, insides) -> None:
-        self._insides = insides
-
-    def unwrap_tensors(self) -> List["FPTensor"]:
-
-        for t in self._insides:
-            assert isinstance(t, FPTensor)
-        return self._insides
-
-    def unwrap_phe_tensors(self) -> List["PHETensor"]:
-
-        for t in self._insides:
-            assert isinstance(t, PHETensor)
-        return self._insides
-
-    def unwrap(self, check: Optional[Callable[[T], bool]] = None) -> List[T]:
-        if check is not None:
-            for i, t in enumerate(self._insides):
-                if not check(t):
-                    raise TypeError(f"{i}th element `{self._insides}` check failed")
-        return self._insides
-
 
 class _ContextInside:
     def __init__(self, cpn_input) -> None:
@@ -232,46 +178,6 @@ class Context:
 
     def current_namespace(self):
         return self._namespace_state.get_namespce()
-
-    def push(self, target: Parties, key: str, value):
-        return self._push(target.get_parties(), key, value)
-
-    def pull(
-        self,
-        source: Parties,
-        key: str,
-    ) -> Future:
-        return Future(self._pull(source.get_parties(), key)[0])
-
-    def pulls(self, source: Parties, key: str) -> Futures:
-        return Futures(self._pull(source.get_parties(), key))
-
-    def _push(self, parties: typing.List[Party], key, value):
-        if hasattr(value, "__federation_hook__"):
-            value.__federation_hook__(self, key, parties)
-        else:
-            get_session().federation.remote(
-                v=value,
-                name=key,
-                tag=self.current_namespace(),
-                parties=parties,
-                gc=self._inside.get_or_set_push_gc(key),
-            )
-
-    def _pull(self, parties: typing.List[Party], key):
-        raw_values = get_session().federation.get(
-            name=key,
-            tag=self.current_namespace(),
-            parties=parties,
-            gc=self._inside.get_or_set_pull_gc(key),
-        )
-        values = []
-        for party, raw_value in zip(parties, raw_values):
-            if isinstance(raw_value, FederationDeserializer):
-                values.append(raw_value.do_deserialize(self, party))
-            else:
-                values.append(raw_value)
-        return values
 
     @overload
     def keygen(

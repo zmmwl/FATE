@@ -17,7 +17,7 @@
 
 import typing
 
-from ._parties import Party
+from ._types import Party
 
 
 class Role:

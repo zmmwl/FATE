@@ -7,7 +7,7 @@ from ._checkpoint import CheckpointManager
 from ._log import Logger
 from ._metric import Metrics
 from ._summary import Summary
-
+from ._party import Party, Parties
 
 class Context(Protocol):
     role: str
@@ -18,6 +18,9 @@ class Context(Protocol):
     anonymous_generator: Anonymous
     checkpoint_manager: CheckpointManager
     log: Logger
+    guest: Party
+    hosts: Parties
+    arbiter: Party
 
     @contextmanager
     def sub_ctx(self, namespace) -> Iterator["Context"]:

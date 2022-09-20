@@ -84,6 +84,9 @@ class Party(BaseType):
     def __eq__(self, other):
         return self.party_id == other.party_id and self.role == other.role
 
+    def as_tuple(self):
+        return (self.role, self.party_id)
+
 
 class DTable(BaseType):
     def __init__(self, namespace, name, partitions=None):

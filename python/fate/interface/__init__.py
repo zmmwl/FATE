@@ -10,6 +10,8 @@ from ._model_io import ModelMeta, ModelReader, ModelsLoader, ModelsSaver, ModelW
 from ._module import Module
 from ._param import Params
 from ._summary import Summary
+from ._party import Party, Parties, Future, Futures
+from ._tensor import FPTensor, PHETensor, PHEEncryptor, PHEDecryptor
 
 __all__ = [
     "Module",
@@ -31,4 +33,12 @@ __all__ = [
     "CheckpointManager",
     "Logger",
     "LOGMSG",
+    "Party",
+    "Parties",
+    "Future",
+    "Futures",
+    "FPTensor",
+    "PHETensor",
+    "PHEEncryptor",
+    "PHEDecryptor",
 ]
