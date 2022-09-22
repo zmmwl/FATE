@@ -1,5 +1,4 @@
-from collections.abc import Callable
-from typing import Protocol, Union
+from typing import Callable, Protocol, Union
 
 LOGMSG = Union[str, Callable[[], str]]
 

@@ -13,21 +13,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from .common import EngineType
+from .common.address import (
+    ApiAddress,
+    EggRollAddress,
+    HDFSAddress,
+    HiveAddress,
+    LinkisHiveAddress,
+    LocalFSAddress,
+    MysqlAddress,
+    PathAddress,
+    StandaloneAddress,
+)
 from .computing import ComputingEngine
 from .federation import FederationEngine
 from .storage import StorageEngine
-from .common.address import (
-    StandaloneAddress,
-    EggRollAddress,
-    HDFSAddress,
-    MysqlAddress,
-    PathAddress,
-    LocalFSAddress,
-    HiveAddress,
-    LinkisHiveAddress,
-    ApiAddress,
-)
-from .common import EngineType
 
 
 class Relationship(object):

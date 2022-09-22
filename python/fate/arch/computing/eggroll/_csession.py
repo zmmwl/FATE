@@ -80,8 +80,8 @@ class CSession(CSessionABC):
         from ...common.address import PathAddress
 
         if isinstance(address, PathAddress):
-            from ...computing.non_distributed import LocalData
             from ...computing import ComputingEngine
+            from ...computing.non_distributed import LocalData
 
             return LocalData(address.path, engine=ComputingEngine.EGGROLL)
 

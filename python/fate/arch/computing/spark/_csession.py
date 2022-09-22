@@ -16,11 +16,10 @@
 
 from typing import Iterable
 
-from ...abc import AddressABC
-from ...abc import CSessionABC
-from ...common.address import LocalFSAddress
-from ._table import from_hdfs, from_rdd, from_hive, from_localfs
+from ...abc import AddressABC, CSessionABC
 from ...common import log
+from ...common.address import LocalFSAddress
+from ._table import from_hdfs, from_hive, from_localfs, from_rdd
 
 LOGGER = log.getLogger()
 
@@ -49,8 +48,8 @@ class CSession(CSessionABC):
         from ...common.address import PathAddress
 
         if isinstance(address, PathAddress):
-            from ...computing.non_distributed import LocalData
             from ...computing import ComputingEngine
+            from ...computing.non_distributed import LocalData
 
             return LocalData(address.path, engine=ComputingEngine.SPARK)
 

@@ -14,15 +14,14 @@
 #  limitations under the License.
 #
 
-from ...common import Party
-from ...common import file_utils
+from ...common import Party, file_utils
 from ...common.log import getLogger
 from ._federation import FederationBase
 from ._mq_channel import (
-    MQChannel,
-    DEFAULT_TENANT,
     DEFAULT_CLUSTER,
     DEFAULT_SUBSCRIPTION_NAME,
+    DEFAULT_TENANT,
+    MQChannel,
 )
 from ._pulsar_manager import PulsarManager
 

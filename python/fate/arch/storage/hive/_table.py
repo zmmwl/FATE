@@ -18,8 +18,7 @@ import uuid
 
 from ...common import hive_utils
 from ...common.file_utils import get_project_base_directory
-from ...storage import StorageEngine, HiveStoreType
-from ...storage import StorageTableBase
+from ...storage import HiveStoreType, StorageEngine, StorageTableBase
 
 
 class StorageTable(StorageTableBase):

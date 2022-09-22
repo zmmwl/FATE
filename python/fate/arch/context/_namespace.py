@@ -26,4 +26,4 @@ class Namespace:
         return ".".join(self.namespaces)
 
     def fedeation_tag(self) -> str:
-        ...
+        return ".".join(self.namespaces)

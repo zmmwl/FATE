@@ -1,11 +1,6 @@
 import typing
 
-from ...abc.tensor import (
-    PHECipherABC,
-    PHEDecryptorABC,
-    PHEEncryptorABC,
-    PHETensorABC,
-)
+from ...abc.tensor import PHECipherABC, PHEDecryptorABC, PHEEncryptorABC, PHETensorABC
 
 
 class Local:

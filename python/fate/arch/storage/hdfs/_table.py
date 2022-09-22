@@ -20,8 +20,7 @@ from pyarrow import fs
 
 from ...common import hdfs_utils
 from ...common.log import getLogger
-from ...storage import StorageEngine, HDFSStoreType
-from ...storage import StorageTableBase
+from ...storage import HDFSStoreType, StorageEngine, StorageTableBase
 
 LOGGER = getLogger()
 

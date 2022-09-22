@@ -6,12 +6,11 @@ from ._cache import Cache
 from ._checkpoint import CheckpointManager
 from ._log import Logger
 from ._metric import Metrics
+from ._party import Parties, Party
 from ._summary import Summary
-from ._party import Party, Parties
+
 
 class Context(Protocol):
-    role: str
-    party_id: str
     summary: Summary
     metrics: Metrics
     cache: Cache
@@ -21,6 +20,7 @@ class Context(Protocol):
     guest: Party
     hosts: Parties
     arbiter: Party
+    parties: Parties
 
     @contextmanager
     def sub_ctx(self, namespace) -> Iterator["Context"]:

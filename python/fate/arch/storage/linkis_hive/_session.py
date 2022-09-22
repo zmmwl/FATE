@@ -13,9 +13,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from ...common.address import LinkisHiveAddress
-from ...storage import StorageSessionBase, StorageEngine, LinkisHiveStoreType
 from ...abc import AddressABC
+from ...common.address import LinkisHiveAddress
+from ...storage import LinkisHiveStoreType, StorageEngine, StorageSessionBase
 
 
 class StorageSession(StorageSessionBase):

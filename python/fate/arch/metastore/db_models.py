@@ -18,20 +18,18 @@ import os
 import sys
 
 from peewee import (
-    CharField,
-    IntegerField,
     BigIntegerField,
-    TextField,
-    CompositeKey,
     BooleanField,
+    CharField,
+    CompositeKey,
+    IntegerField,
+    TextField,
 )
 
-from ..federation import FederationEngine
-from ..metastore.base_model import DateTimeField
-from ..common import file_utils, log, EngineType, conf_utils
+from ..common import EngineType, conf_utils, file_utils, log
 from ..common.conf_utils import decrypt_database_config
-from ..metastore.base_model import JSONField, SerializedField, BaseModel
-
+from ..federation import FederationEngine
+from ..metastore.base_model import BaseModel, DateTimeField, JSONField, SerializedField
 
 LOGGER = log.getLogger()
 

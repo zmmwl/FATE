@@ -15,7 +15,8 @@
 #
 
 from typing import Iterable
-from ...storage import StorageTableBase, StorageEngine, EggRollStoreType
+
+from ...storage import EggRollStoreType, StorageEngine, StorageTableBase
 
 
 class StorageTable(StorageTableBase):

@@ -15,6 +15,7 @@
 #
 
 import json
+
 import pika
 
 from ...common import log

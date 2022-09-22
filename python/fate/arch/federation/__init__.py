@@ -1,4 +1,3 @@
-from ._type import FederationEngine
-from ._type import FederationDataType
+from ._type import FederationDataType, FederationEngine
 
 __all__ = ["FederationEngine", "FederationDataType"]

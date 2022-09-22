@@ -16,8 +16,7 @@
 
 import json
 
-from ...common import Party
-from ...common import file_utils
+from ...common import Party, file_utils
 from ...common.log import getLogger
 from ._federation import FederationBase
 from ._mq_channel import MQChannel

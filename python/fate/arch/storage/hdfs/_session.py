@@ -14,9 +14,9 @@
 #  limitations under the License.
 #
 
-from ...storage import StorageSessionBase, StorageEngine
 from ...abc import AddressABC
 from ...common.address import HDFSAddress
+from ...storage import StorageEngine, StorageSessionBase
 
 
 class StorageSession(StorageSessionBase):

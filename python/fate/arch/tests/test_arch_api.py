@@ -16,8 +16,8 @@
 import uuid
 
 import numpy as np
-from .. import session
 
+from .. import session
 
 sess = session.Session()
 sess.init_computing()

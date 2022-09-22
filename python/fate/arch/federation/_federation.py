@@ -18,10 +18,10 @@
 import json
 import sys
 import typing
-from pickle import dumps as p_dumps, loads as p_loads
+from pickle import dumps as p_dumps
+from pickle import loads as p_loads
 
-from ..abc import CTableABC
-from ..abc import FederationABC, GarbageCollectionABC
+from ..abc import CTableABC, FederationABC, GarbageCollectionABC
 from ..common import Party
 from ..common.log import getLogger
 from ..federation import FederationDataType

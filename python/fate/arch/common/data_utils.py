@@ -1,8 +1,8 @@
 import os
 import uuid
 
-from file_utils import get_project_base_directory
 from ..storage import StorageEngine
+from .file_utils import get_project_base_directory
 
 
 def default_output_info(task_id, task_version, output_type):

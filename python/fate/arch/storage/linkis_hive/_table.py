@@ -17,14 +17,8 @@ import time
 
 import requests
 
-from ...storage import StorageEngine, LinkisHiveStoreType
-from ...storage import StorageTableBase
-from ._settings import (
-    Token_Code,
-    Token_User,
-    STATUS_URI,
-    EXECUTE_URI,
-)
+from ...storage import LinkisHiveStoreType, StorageEngine, StorageTableBase
+from ._settings import EXECUTE_URI, STATUS_URI, Token_Code, Token_User
 
 
 class StorageTable(StorageTableBase):

@@ -14,6 +14,7 @@
 #  limitations under the License.
 #
 from eggroll.roll_pair.roll_pair import RollPair
+
 from ...abc import AddressABC, CTableABC
 
 # noinspection PyAbstractClass

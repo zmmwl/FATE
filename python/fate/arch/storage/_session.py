@@ -15,25 +15,22 @@
 #
 import typing
 
-from ..abc import StorageSessionABC, CTableABC
+from ..abc import CTableABC, StorageSessionABC
 from ..common import EngineType, engine_utils
-from ..common.data_utils import default_output_fs_path
+from ..common.base_utils import current_timestamp
 from ..common.log import getLogger
 from ..storage._table import StorageTableMeta
 from ..storage._types import (
-    StorageEngine,
     EggRollStoreType,
-    StandaloneStoreType,
     HDFSStoreType,
     HiveStoreType,
     LinkisHiveStoreType,
     LocalFSStoreType,
     PathStoreType,
+    StandaloneStoreType,
+    StorageEngine,
     StorageTableOrigin,
 )
-from ..relation_ship import Relationship
-from ..common.base_utils import current_timestamp
-
 
 LOGGER = getLogger()
 
@@ -91,6 +88,8 @@ class StorageSessionBase(StorageSessionABC):
         store_type=None,
         token: typing.Dict = None,
     ) -> StorageTableMeta:
+
+        from ..relation_ship import Relationship
         if engine:
             if (
                 engine != StorageEngine.PATH
@@ -151,6 +150,7 @@ class StorageSessionBase(StorageSessionABC):
             )
 
         elif engine == StorageEngine.HDFS:
+            from ..common.data_utils import default_output_fs_path
             if not address_dict.get("path"):
                 address_dict.update(
                     {
@@ -164,6 +164,7 @@ class StorageSessionBase(StorageSessionABC):
             store_type = HDFSStoreType.DISK if store_type is None else store_type
 
         elif engine == StorageEngine.LOCALFS:
+            from ..common.data_utils import default_output_fs_path
             if not address_dict.get("path"):
                 address_dict.update(
                     {

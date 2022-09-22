@@ -39,7 +39,7 @@ class Party(Protocol):
     def pull(self, name: str) -> Future:
         ...
 
-    def push(self, name: str):
+    def push(self, name: str, value):
         ...
 
 
@@ -47,7 +47,7 @@ class Parties(Protocol):
     def pull(self, name: str) -> Futures:
         ...
 
-    def push(self, name: str):
+    def push(self, name: str, value):
         ...
 
     def __call__(self, key: int) -> Party:

@@ -17,9 +17,9 @@ import traceback
 
 import pymysql
 
-from ...storage import StorageSessionBase, StorageEngine, MySQLStoreType
 from ...abc import AddressABC
 from ...common.address import MysqlAddress
+from ...storage import MySQLStoreType, StorageEngine, StorageSessionBase
 
 
 class StorageSession(StorageSessionBase):

@@ -14,8 +14,9 @@
 #  limitations under the License.
 #
 
-import requests
 import time
+
+import requests
 
 from ...common import log
 

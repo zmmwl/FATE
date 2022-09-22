@@ -14,11 +14,12 @@
 #  limitations under the License.
 #
 
-from ...storage import StorageSessionBase, StorageEngine, EggRollStoreType
-from ...abc import AddressABC
-from ...common.address import EggRollAddress
 from eggroll.core.session import session_init
 from eggroll.roll_pair.roll_pair import RollPairContext
+
+from ...abc import AddressABC
+from ...common.address import EggRollAddress
+from ...storage import EggRollStoreType, StorageEngine, StorageSessionBase
 
 
 class StorageSession(StorageSessionBase):

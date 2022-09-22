@@ -14,9 +14,9 @@
 #  limitations under the License.
 #
 import os
+import typing
 
 import dotenv
-import typing
 
 from .file_utils import get_project_base_directory
 

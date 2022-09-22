@@ -38,7 +38,6 @@ from .common import Party, file_utils
 from .common.log import getLogger
 from .federation import FederationDataType
 
-
 LOGGER = getLogger()
 
 serialize = c_pickle.dumps

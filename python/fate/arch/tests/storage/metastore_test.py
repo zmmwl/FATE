@@ -14,6 +14,7 @@
 #  limitations under the License.
 #
 import unittest
+
 from ...metastore import base_model
 
 
@@ -33,14 +34,18 @@ class TestBaseModel(unittest.TestCase):
 
     def test(self):
         from peewee import (
-            IntegerField,
-            FloatField,
             AutoField,
             BigAutoField,
+            BigBitField,
             BigIntegerField,
             BitField,
+            BooleanField,
+            CharField,
+            FloatField,
+            IntegerField,
+            TextField,
         )
-        from peewee import CharField, TextField, BooleanField, BigBitField
+
         from ...metastore.base_model import JSONField, LongTextField
 
         for f in {

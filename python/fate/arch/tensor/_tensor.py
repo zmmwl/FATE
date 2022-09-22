@@ -1,4 +1,5 @@
 import json
+import typing
 from contextlib import contextmanager
 from enum import Enum
 from typing import (
@@ -13,18 +14,17 @@ from typing import (
     Union,
     overload,
 )
-import typing
 
 import torch
+from typing_extensions import Literal
+
 from fate.arch.common import Party
 from fate.arch.federation.transfer_variable import IterationGC
 from fate.arch.session import get_session
-from typing_extensions import Literal
-
 
 from ..federation._parties import Parties, PreludeParty
-from .abc.tensor import PHEDecryptorABC, PHEEncryptorABC, PHETensorABC
 from ._federation import FederationDeserializer
+from .abc.tensor import PHEDecryptorABC, PHEEncryptorABC, PHETensorABC
 
 
 class NamespaceState:
@@ -69,6 +69,7 @@ class Distributed(Enum):
 
 
 T = TypeVar("T")
+
 
 class _ContextInside:
     def __init__(self, cpn_input) -> None:
@@ -219,8 +220,9 @@ class Context:
         if self.distributed == Distributed.NONE:
             return FPTensor(self, torch.rand(shape))
         else:
-            from ..session import computing_session
             from fate.arch.tensor.impl.tensor.distributed import FPTensorDistributed
+
+            from ..session import computing_session
 
             parts = []
             first_dim_approx = shape[0] // num_partition

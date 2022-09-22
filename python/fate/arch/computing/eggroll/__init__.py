@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-from ._table import Table
 from ._csession import CSession
+from ._table import Table
 
 __all__ = ["Table", "CSession"]

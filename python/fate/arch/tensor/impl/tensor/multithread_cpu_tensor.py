@@ -1,12 +1,12 @@
-from ._metaclass import (
-    phe_tensor_metaclass,
-    phe_tensor_encryptor_metaclass,
-    phe_tensor_decryptor_metaclass,
-    phe_tensor_cipher_metaclass,
-)
-
 import torch
+
 from ..blocks.multithread_cpu_paillier_block import BlockPaillierCipher
+from ._metaclass import (
+    phe_tensor_cipher_metaclass,
+    phe_tensor_decryptor_metaclass,
+    phe_tensor_encryptor_metaclass,
+    phe_tensor_metaclass,
+)
 
 FPTensorLocal = torch.Tensor
 

@@ -2,8 +2,8 @@ import abc
 import typing
 from abc import ABCMeta
 
-from ._gc import GarbageCollectionABC
 from ..common import Party
+from ._gc import GarbageCollectionABC
 
 __all__ = ["FederationABC"]
 

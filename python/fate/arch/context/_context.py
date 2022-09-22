@@ -1,9 +1,8 @@
 import logging
-from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from logging import Logger, getLogger
-from typing import List, Literal, Optional, Tuple
+from logging import Logger, disable, getLogger
+from typing import List, Literal, Optional, Tuple, Iterator
 
 from fate.interface import LOGMSG, Anonymous, Cache, CheckpointManager
 from fate.interface import Context as ContextInterface
@@ -11,9 +10,12 @@ from fate.interface import Logger as LoggerInterface
 from fate.interface import Metric as MetricInterface
 from fate.interface import MetricMeta as MetricMetaInterface
 from fate.interface import Metrics, Summary
+from fate.interface import ComputingEngine
+from ..session import Session
 
-from ._federation import GC, _PartyUtil
+from ._federation import GC, FederationEngine
 from ._namespace import Namespace
+from ..common._parties import PartiesInfo, Party
 
 
 @dataclass
@@ -89,25 +91,53 @@ class DummyCheckpointManager(CheckpointManager):
 
 
 class DummyLogger(LoggerInterface):
-    def __init__(self, level=logging.DEBUG) -> None:
+    def __init__(
+        self,
+        context_name: Optional[str] = None,
+        namespace: Optional[Namespace] = None,
+        level=logging.DEBUG,
+        disable_buildin=True,
+    ) -> None:
+        if disable_buildin:
+            self._disable_buildin()
+
         self.logger = getLogger("fate.dummy")
+        self.namespace = namespace
+        self.context_name = context_name
+
         self.logger.setLevel(level)
 
+        formats = []
+        if self.context_name is not None:
+            formats.append("%(context_name)s")
+        if self.namespace is not None:
+            formats.append("%(namespace)s")
+        formats.append("%(pathname)s:%(lineno)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(" - ".join(formats))
+
         # console
-        formatter = logging.Formatter(
-            "%(asctime)s - %(pathname)s:%(lineno)s - %(levelname)s - %(message)s"
-        )
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG)
         console_handler.setFormatter(formatter)
-
         self.logger.addHandler(console_handler)
+
+    @classmethod
+    def _disable_buildin(cls):
+        from ..common.log import getLogger
+
+        logger = getLogger()
+        logger.disabled = True
 
     def log(self, level: int, msg: LOGMSG):
         if Logger.isEnabledFor(self.logger, level):
             if callable(msg):
                 msg = msg()
-            self.logger.log(level, msg, stacklevel=3)
+            extra = {}
+            if self.namespace is not None:
+                extra["namespace"] = self.namespace.namespace
+            if self.context_name is not None:
+                extra["context_name"] = self.context_name
+            self.logger.log(level, msg, stacklevel=3, extra=extra)
 
     def info(self, msg: LOGMSG):
         return self.log(logging.INFO, msg)
@@ -133,49 +163,79 @@ class Context(ContextInterface):
 
     def __init__(
         self,
-        local_party: Tuple[Literal["guest", "host", "arbiter"], str],
-        parties: Optional[List[Tuple[Literal["guest", "host", "arbiter"], str]]] = None,
+        context_name: Optional[str] = None,
+        computing: Optional[ComputingEngine] = None,
+        federation: Optional[FederationEngine] = None,
         summary: Summary = DummySummary(),
         metrics: Metrics = DummyMetrics(),
         cache: Cache = DummyCache(),
         anonymous_generator: Anonymous = DummyAnonymous(),
         checkpoint_manager: CheckpointManager = DummyCheckpointManager(),
-        log: DummyLogger = DummyLogger(),
+        log: Optional[LoggerInterface] = None,
+        disable_buildin_logger=True,  # FIXME: just clear old loggers, remove in future
         namespace: Optional[Namespace] = None,
     ) -> None:
-        if namespace is None:
-            self.namespace = Namespace()
-        else:
-            self.namespace = namespace
-
-        self.role, self.party_id = local_party
+        self.context_name = context_name
         self.summary = summary
         self.metrics = metrics
         self.cache = cache
         self.anonymous_generator = anonymous_generator
         self.checkpoint_manager = checkpoint_manager
+
+        if namespace is None:
+            namespace = Namespace()
+        self.namespace = namespace
+
+        if log is None:
+            log = DummyLogger(
+                context_name, self.namespace, disable_buildin=disable_buildin_logger
+            )
         self.log = log
 
-        self._party_util = _PartyUtil.parse(local_party, parties)
+        self._computing = computing
+        self._federation = federation
+        self._session = Session()
         self._gc = GC()
+
+    def init_computing(self, computing_session_id=None):
+        self._session.init_computing(computing_session_id=computing_session_id)
+
+    def init_federation(
+        self,
+        federation_id,
+        local_party: Tuple[Literal["guest", "host", "arbiter"], str],
+        parties: List[Tuple[Literal["guest", "host", "arbiter"], str]],
+    ):
+        if self._federation is None:
+            self._federation = FederationEngine(
+                federation_id, local_party, parties, self, self._session, self.namespace
+            )
 
     @contextmanager
     def sub_ctx(self, namespace) -> Iterator["Context"]:
         with self.namespace.into_subnamespace(namespace):
-            yield self
+            try:
+                yield self
+            finally:
+                ...
 
     @property
     def guest(self):
-        self._party_util.create_party("guest", self, self.namespace, self._gc)
+        return self._get_party_util().guest
 
     @property
     def hosts(self):
-        self._party_util.create_parties("host", self, self.namespace, self._gc)
+        return self._get_party_util().hosts
 
     @property
     def arbiter(self):
-        self._party_util.create_party("arbiter", self, self.namespace, self._gc)
+        return self._get_party_util().arbiter
 
     @property
     def parties(self):
-        return self._party_util.all_parties(self, self.namespace, self._gc)
+        return self._get_party_util().parties
+
+    def _get_party_util(self) -> FederationEngine:
+        if self._federation is None:
+            raise RuntimeError("federation session not init")
+        return self._federation

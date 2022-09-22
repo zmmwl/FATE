@@ -14,20 +14,19 @@
 #  limitations under the License.
 #
 
+import typing
 import uuid
 from itertools import chain
 
-import typing
 import pyspark
-
 from pyspark.rddsampler import RDDSamplerBase
-
 from scipy.stats import hypergeom
+
 from ...abc import CTableABC
-from ...common import log, hdfs_utils, hive_utils
+from ...common import hdfs_utils, hive_utils, log
 from ...common.profile import computing_profile
-from ._materialize import materialize, unmaterialize
 from .._type import ComputingEngine
+from ._materialize import materialize, unmaterialize
 
 LOGGER = log.getLogger()
 

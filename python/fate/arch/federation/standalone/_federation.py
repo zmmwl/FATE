@@ -1,8 +1,8 @@
 import typing
 
-from ..._standalone import Federation as RawFederation, Table as RawTable
-from ...abc import FederationABC
-from ...abc import GarbageCollectionABC
+from ..._standalone import Federation as RawFederation
+from ..._standalone import Table as RawTable
+from ...abc import FederationABC, GarbageCollectionABC
 from ...common import Party, log
 from ...computing.standalone import Table
 

@@ -14,12 +14,13 @@
 #  limitations under the License.
 #
 
-import logging
 import json
-import requests
+import logging
 
+import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
 from ...common.log import getLogger
 
 logger = getLogger()

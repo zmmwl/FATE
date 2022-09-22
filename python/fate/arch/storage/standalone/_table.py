@@ -16,8 +16,7 @@
 from typing import Iterable
 
 from ..._standalone import Session
-from ...storage import StorageEngine, StandaloneStoreType
-from ...storage import StorageTableBase
+from ...storage import StandaloneStoreType, StorageEngine, StorageTableBase
 
 
 class StorageTable(StorageTableBase):

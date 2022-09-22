@@ -17,9 +17,9 @@ import traceback
 
 from impala.dbapi import connect
 
-from ...common.address import HiveAddress
-from ...storage import StorageSessionBase, StorageEngine, HiveStoreType
 from ...abc import AddressABC
+from ...common.address import HiveAddress
+from ...storage import HiveStoreType, StorageEngine, StorageSessionBase
 
 
 class StorageSession(StorageSessionBase):

@@ -1,6 +1,8 @@
 import typing
 from typing import Union
 
+from ..._federation import FederationDeserializer
+from ..._tensor import Context, Party
 from ...abc.tensor import (
     FPTensorProtocol,
     PHECipherABC,
@@ -8,8 +10,6 @@ from ...abc.tensor import (
     PHEEncryptorABC,
     PHETensorABC,
 )
-from ..._federation import FederationDeserializer
-from ..._tensor import Context, Party
 
 Numeric = typing.Union[int, float]
 

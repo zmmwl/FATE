@@ -16,8 +16,7 @@
 
 from ...common import path_utils
 from ...common.log import getLogger
-from ...storage import StorageEngine, PathStoreType
-from ...storage import StorageTableBase
+from ...storage import PathStoreType, StorageEngine, StorageTableBase
 
 LOGGER = getLogger()
 

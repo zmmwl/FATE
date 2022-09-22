@@ -1,15 +1,17 @@
-from ._types import StorageTableMetaType, StorageEngine
+from ._session import StorageSessionBase
+from ._table import StorageTableBase, StorageTableMeta
 from ._types import (
-    StandaloneStoreType,
+    DEFAULT_ID_DELIMITER,
+    ApiStoreType,
     EggRollStoreType,
     HDFSStoreType,
-    MySQLStoreType,
-    PathStoreType,
     HiveStoreType,
     LinkisHiveStoreType,
     LocalFSStoreType,
-    ApiStoreType,
+    MySQLStoreType,
+    PathStoreType,
+    StandaloneStoreType,
+    StorageEngine,
+    StorageTableMetaType,
+    StorageTableOrigin,
 )
-from ._types import DEFAULT_ID_DELIMITER, StorageTableOrigin
-from ._session import StorageSessionBase
-from ._table import StorageTableBase, StorageTableMeta

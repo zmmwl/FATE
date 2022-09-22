@@ -13,10 +13,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from ..._standalone import Session
 from ...abc import AddressABC
 from ...common.address import StandaloneAddress
-from ...storage import StorageSessionBase, StorageEngine
-from ..._standalone import Session
+from ...storage import StorageEngine, StorageSessionBase
 
 
 class StorageSession(StorageSessionBase):

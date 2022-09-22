@@ -24,9 +24,8 @@ import time
 import uuid
 from enum import Enum, IntEnum
 
-from .conf_utils import get_base_config
 from ._types import BaseType
-
+from .conf_utils import get_base_config
 
 use_deserialize_safe_module = get_base_config("use_deserialize_safe_module", False)
 

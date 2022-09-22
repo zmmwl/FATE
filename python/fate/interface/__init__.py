@@ -9,9 +9,11 @@ from ._metric import Metric, MetricMeta, Metrics
 from ._model_io import ModelMeta, ModelReader, ModelsLoader, ModelsSaver, ModelWriter
 from ._module import Module
 from ._param import Params
+from ._party import Future, Futures, Parties, Party
 from ._summary import Summary
-from ._party import Party, Parties, Future, Futures
-from ._tensor import FPTensor, PHETensor, PHEEncryptor, PHEDecryptor
+from ._tensor import FPTensor, PHEDecryptor, PHEEncryptor, PHETensor
+from ._federation import FederationEngine
+from ._computing import ComputingEngine
 
 __all__ = [
     "Module",
@@ -41,4 +43,6 @@ __all__ = [
     "PHETensor",
     "PHEEncryptor",
     "PHEDecryptor",
+    "FederationEngine",
+    "ComputingEngine"
 ]

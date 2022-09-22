@@ -14,8 +14,7 @@
 #  limitations under the License.
 #
 
-from ...storage import StorageEngine, MySQLStoreType
-from ...storage import StorageTableBase
+from ...storage import MySQLStoreType, StorageEngine, StorageTableBase
 
 
 class StorageTable(StorageTableBase):

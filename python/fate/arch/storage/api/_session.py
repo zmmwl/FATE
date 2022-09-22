@@ -15,10 +15,10 @@
 #
 import os
 
-from ...common import file_utils
-from ...storage import StorageSessionBase, StorageEngine
 from ...abc import AddressABC
+from ...common import file_utils
 from ...common.address import ApiAddress
+from ...storage import StorageEngine, StorageSessionBase
 
 
 class StorageSession(StorageSessionBase):

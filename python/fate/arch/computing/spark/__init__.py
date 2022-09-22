@@ -15,8 +15,8 @@
 #
 
 from ._csession import CSession
-from ._table import Table, from_hdfs, from_rdd, from_hive, from_localfs
 from ._materialize import get_storage_level, materialize
+from ._table import Table, from_hdfs, from_hive, from_localfs, from_rdd
 
 __all__ = [
     "Table",

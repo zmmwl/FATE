@@ -18,25 +18,25 @@ import typing
 from enum import IntEnum
 
 from peewee import (
-    Field,
-    IntegerField,
-    FloatField,
     BigIntegerField,
-    TextField,
-    Model,
     CompositeKey,
+    Field,
+    FloatField,
+    IntegerField,
     Metadata,
+    Model,
+    TextField,
 )
 
-from ..common import conf_utils, EngineType
+from ..common import EngineType, conf_utils
 from ..common.base_utils import (
     current_timestamp,
-    serialize_b64,
-    deserialize_b64,
-    timestamp_to_date,
     date_string_to_timestamp,
+    deserialize_b64,
     json_dumps,
     json_loads,
+    serialize_b64,
+    timestamp_to_date,
 )
 from ..federation import FederationEngine
 

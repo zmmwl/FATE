@@ -20,10 +20,9 @@ from typing import Iterable
 
 import peewee
 
-from ..abc import StorageTableMetaABC, StorageTableABC, AddressABC
+from ..abc import AddressABC, StorageTableABC, StorageTableMetaABC
 from ..common.base_utils import current_timestamp
 from ..common.log import getLogger
-from ..relation_ship import Relationship
 from ..metastore.db_models import DB, StorageTableMetaModel
 
 LOGGER = getLogger()
@@ -375,6 +374,7 @@ class StorageTableMeta(StorageTableMetaABC):
 
     @classmethod
     def create_address(cls, storage_engine, address_dict):
+        from ..relation_ship import Relationship
         address_class = Relationship.EngineToAddress.get(storage_engine)
         kwargs = {}
         for k in address_class.__init__.__code__.co_varnames:

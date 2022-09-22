@@ -21,15 +21,13 @@ import peewee
 
 from ..abc import (
     CSessionABC,
-    FederationABC,
     CTableABC,
+    FederationABC,
     StorageSessionABC,
     StorageTableABC,
     StorageTableMetaABC,
 )
-from ..common import engine_utils, EngineType, Party
-from ..common import log, base_utils
-from ..common import remote_status
+from ..common import EngineType, Party, base_utils, engine_utils, log, remote_status
 from ..common._parties import PartiesInfo
 from ..computing import ComputingEngine
 from ..federation import FederationEngine
@@ -102,7 +100,7 @@ class Session(object):
         return self._close()
 
     def init_computing(
-        self, computing_session_id: str = None, record: bool = True, **kwargs
+        self, computing_session_id: typing.Optional[str] = None, record: bool = True, **kwargs
     ):
         computing_session_id = (
             f"{self._session_id}_computing_{uuid.uuid1()}"
@@ -178,9 +176,6 @@ class Session(object):
                 raise RuntimeError(f"`party_info` and `runtime_conf` are both `None`")
             parties_info = PartiesInfo.from_conf(runtime_conf)
         self._parties_info = parties_info
-        self._all_party_info = [
-            Party(k, p) for k, v in runtime_conf["role"].items() for p in v
-        ]
 
         if self.is_federation_valid:
             raise RuntimeError("federation session already valid")
@@ -615,7 +610,7 @@ class Session(object):
                         f"try to destroy federation session {self._federation_session.session_id} type"
                         f" {EngineType.FEDERATION} role {self._parties_info.local_party.role}"
                     )
-                    self._federation_session.destroy(parties=self._all_party_info)
+                    self._federation_session.destroy(parties=self._parties_info.all_parties)
                     self._logger.info(
                         f"destroy federation session {self._federation_session.session_id} done"
                     )

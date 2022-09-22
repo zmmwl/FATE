@@ -21,10 +21,11 @@ from enum import Enum
 
 from eggroll.roll_pair.roll_pair import RollPair
 from eggroll.roll_site.roll_site import RollSiteContext
+
 from ...abc import FederationABC
+from ...common import remote_status
 from ...common.log import getLogger
 from ...computing.eggroll import Table
-from ...common import remote_status
 
 LOGGER = getLogger()
 

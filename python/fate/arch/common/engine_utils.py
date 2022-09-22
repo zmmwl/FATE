@@ -13,12 +13,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from ..common import FederatedMode, conf_utils
+from ..common import EngineType, FederatedMode, conf_utils
 from ..computing import ComputingEngine
 from ..federation import FederationEngine
-from ..storage import StorageEngine
 from ..relation_ship import Relationship
-from ..common import EngineType
+from ..storage import StorageEngine
 
 
 def get_engine_class_members(engine_class) -> list:

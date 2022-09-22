@@ -15,14 +15,14 @@
 #
 
 
-from ..computing import is_table
 from ..common._parties import PartiesInfo, Role
+from ..computing import is_table
 from ._session import (
     Session,
     computing_session,
-    get_session,
-    get_parties,
     get_computing_session,
+    get_parties,
+    get_session,
 )
 
 __all__ = [
