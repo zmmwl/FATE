@@ -143,13 +143,13 @@ class DummyLogger(LoggerInterface):
         return self.log(logging.INFO, msg)
 
     def debug(self, msg: LOGMSG):
-        return self.log(logging.INFO, msg)
+        return self.log(logging.DEBUG, msg)
 
     def error(self, msg: LOGMSG):
-        return self.log(logging.INFO, msg)
+        return self.log(logging.ERROR, msg)
 
     def warning(self, msg: LOGMSG):
-        return self.log(logging.INFO, msg)
+        return self.log(logging.WARNING, msg)
 
 
 class Context(ContextInterface):
