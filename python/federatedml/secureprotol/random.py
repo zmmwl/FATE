@@ -15,6 +15,7 @@
 #
 
 from numpy.random import RandomState
+from federatedml.util import LOGGER
 
 
 class RandomPads(object):

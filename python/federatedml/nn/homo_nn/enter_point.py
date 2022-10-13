@@ -84,11 +84,9 @@ class HomoNNServer(HomoNNBase):
 
         else:
             from federatedml.nn.homo_nn._torch import build_aggregator
-
             self.aggregator = build_aggregator(
                 self.param, init_iteration=self._init_iteration
             )
-
             if not self.component_properties.is_warm_start:
                 self.aggregator.dataset_align()
             self.aggregator.fit(self.callback_loss)

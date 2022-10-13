@@ -244,6 +244,7 @@ class PadsCipher(Encrypt):
         }
 
     def encrypt(self, value):
+
         if isinstance(value, np.ndarray):
             ret = value
             for uid, rand in self._rands.items():

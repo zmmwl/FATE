@@ -102,12 +102,14 @@ class ComponentMeta:
     @property
     def bind_param(self):
         def _wrap(cls):
+            print('cls is {}'.format(cls))
             if inspect.isclass(cls) and issubclass(cls, BaseParam):
                 self._param_cls = cls
             elif inspect.isfunction(cls):
                 self._param_cls_getter = cls
             else:
                 raise NotImplementedError(f"type of {cls} not supported")
+            print('ret')
             return cls
 
         return _wrap

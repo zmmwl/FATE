@@ -30,6 +30,7 @@ from pipeline.utils.logger import LOGGER
 
 class JobInvoker(object):
     def __init__(self):
+        print(conf.FlowConfig.IP, conf.FlowConfig.PORT)
         self.client = FlowClient(ip=conf.FlowConfig.IP, port=conf.FlowConfig.PORT, version=conf.SERVER_VERSION,
                                  app_key=conf.FlowConfig.APP_KEY, secret_key=conf.FlowConfig.SECRET_KEY)
 

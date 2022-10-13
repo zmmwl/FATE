@@ -15,7 +15,7 @@
 #  limitations under the License.
 #
 
-from .components import ComponentMeta
+from federatedml.components.components import ComponentMeta
 
 ftl_cpn_meta = ComponentMeta("FTL")
 
