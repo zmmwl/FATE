@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
-
 from federatedml.nn.dataset.base import Dataset
 from federatedml.util import LOGGER
 
 
 class TableDataset(Dataset):
+
     """
      A Table Dataset, load data from a give csv path, or transform FATE DTable
 

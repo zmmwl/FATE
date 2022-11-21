@@ -1,6 +1,5 @@
 from federatedml.util import LOGGER
 from federatedml.util import consts
-
 try:
     import torch
     import torch as t
@@ -44,6 +43,7 @@ def coae_loss(
         lambda_1=10,
         lambda_2=2,
         verbose=False):
+
     loss_a = cross_entropy(reconstruct_label, label) - \
         lambda_1 * cross_entropy(fake_label, label)
     loss_b = entropy(fake_label)
@@ -138,6 +138,7 @@ def train_an_autoencoder_confuser(
 
 
 def coae_label_reformat(labels):
+
     if labels.shape[1] == 1:
         return nn.functional.one_hot(
             t.Tensor(labels).flatten().type(

@@ -1,5 +1,4 @@
 import json
-
 import torch as t
 from torch.nn import Sequential as tSequential
 
@@ -138,6 +137,7 @@ class Sequential(tSequential):
 
 
 def get_torch_instance(fate_torch_nn_class: FateTorchLayer, param):
+
     parent_torch_class = fate_torch_nn_class.__bases__
     for cls in parent_torch_class:
         if issubclass(cls, t.nn.Module):

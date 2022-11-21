@@ -14,19 +14,19 @@
 #  limitations under the License.
 #
 import copy
-import json
 
-from federatedml.nn.backend.utils.common import global_seed
-from federatedml.nn.hetero.interactive.he_interactive_layer import HEInteractiveLayerGuest, HEInteractiveLayerHost
+import json
+from federatedml.util import LOGGER
+from federatedml.util import consts
+from federatedml.param.hetero_nn_param import HeteroNNParam
+from federatedml.nn.hetero.strategy.selector import SelectorFactory
 from federatedml.nn.hetero.nn_component.bottom_model import BottomModel
 from federatedml.nn.hetero.nn_component.top_model import TopModel
-from federatedml.nn.hetero.strategy.selector import SelectorFactory
-from federatedml.param.hetero_nn_param import HeteroNNParam
+from federatedml.nn.backend.utils.common import global_seed
 from federatedml.protobuf.generated.hetero_nn_model_meta_pb2 import HeteroNNModelMeta
 from federatedml.protobuf.generated.hetero_nn_model_meta_pb2 import OptimizerParam
 from federatedml.protobuf.generated.hetero_nn_model_param_pb2 import HeteroNNModelParam
-from federatedml.util import LOGGER
-from federatedml.util import consts
+from federatedml.nn.hetero.interactive.he_interactive_layer import HEInteractiveLayerGuest, HEInteractiveLayerHost
 
 
 class HeteroNNModel(object):
@@ -135,12 +135,12 @@ class HeteroNNGuestModel(HeteroNNModel):
             self._build_interactive_model()
 
         interactive_output = self.interactive_model.forward(
-            x=guest_bottom_output, epoch=epoch, batch_idx=batch_idx, train=True)
+            x=guest_bottom_output, epoch=epoch, batch=batch_idx, train=True)
         self.top_model.train_mode(True)
         selective_ids, gradients, loss = self.top_model.train_and_get_backward_gradient(
             interactive_output, y)
-        interactive_layer_backward = self.interactive_model.guest_backward(
-            error=gradients, epoch=epoch, batch_idx=batch_idx, selective_ids=selective_ids)
+        interactive_layer_backward = self.interactive_model.backward(
+            error=gradients, epoch=epoch, batch=batch_idx, selective_ids=selective_ids)
 
         if not self.is_empty:
             self.bottom_model.backward(
@@ -157,9 +157,12 @@ class HeteroNNGuestModel(HeteroNNModel):
             guest_bottom_output = None
 
         interactive_output = self.interactive_model.forward(
-            guest_bottom_output, epoch=self._predict_round, batch_idx=batch, train=False)
+            guest_bottom_output, epoch=self._predict_round, batch=batch, train=False)
+
         self.top_model.train_mode(False)
         preds = self.top_model.predict(interactive_output)
+        # prediction procedure has its prediction iteration count, we do this
+        # to avoid reusing communication suffixes
         self.inc_predict_round()
 
         return preds
@@ -413,7 +416,7 @@ class HeteroNNHostModel(HeteroNNModel):
         self.interactive_model.forward(
             host_bottom_output, epoch, batch_idx, train=True)
 
-        host_gradient, selective_ids = self.interactive_model.host_backward(
+        host_gradient, selective_ids = self.interactive_model.backward(
             epoch, batch_idx)
 
         self.bottom_model.backward(x, host_gradient, selective_ids)
@@ -426,4 +429,6 @@ class HeteroNNHostModel(HeteroNNModel):
             epoch=self._predict_round,
             batch=batch,
             train=False)
+        # prediction procedure has its prediction iteration count, we do this
+        # to avoid reusing communication suffixes
         self.inc_predict_round()

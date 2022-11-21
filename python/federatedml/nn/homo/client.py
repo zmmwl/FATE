@@ -1,25 +1,23 @@
-import inspect
 import json
-import tempfile
-
 import torch
-
-from fate_arch.computing._util import is_table
+import tempfile
+import inspect
 from fate_arch.computing.non_distributed import LocalData
+from fate_arch.computing._util import is_table
 from fate_arch.session import computing_session
-from federatedml.callbacks.model_checkpoint import ModelCheckpoint
-from federatedml.model_base import MetricMeta
 from federatedml.model_base import ModelBase
+from federatedml.nn.homo.trainer.trainer_base import get_trainer_class, TrainerBase
+from federatedml.nn.backend.utils.data import load_dataset
+from federatedml.param.homo_nn_param import HomoNNParam
 from federatedml.nn.backend.torch import serialization as s
 from federatedml.nn.backend.torch.base import FateTorchOptimizer
-from federatedml.nn.backend.utils.common import global_seed, get_homo_model_dict, get_homo_param_meta
-from federatedml.nn.backend.utils.data import load_dataset
-from federatedml.nn.homo.trainer.trainer_base import StdReturnFormat
-from federatedml.nn.homo.trainer.trainer_base import get_trainer_class, TrainerBase
-from federatedml.param.homo_nn_param import HomoNNParam
-from federatedml.transfer_variable.base_transfer_variable import BaseTransferVariables
+from federatedml.model_base import MetricMeta
 from federatedml.util import LOGGER
 from federatedml.util import consts
+from federatedml.nn.homo.trainer.trainer_base import StdReturnFormat
+from federatedml.nn.backend.utils.common import global_seed, get_homo_model_dict, get_homo_param_meta
+from federatedml.callbacks.model_checkpoint import ModelCheckpoint
+from federatedml.transfer_variable.base_transfer_variable import BaseTransferVariables
 
 
 class HomoNNTransferVariable(BaseTransferVariables):
@@ -27,7 +25,8 @@ class HomoNNTransferVariable(BaseTransferVariables):
         super().__init__(flowid)
         # checkpoint history
         self.ckp_history = self._create_variable(
-            name='ckp_history', src=['host', 'guest'], dst=['arbiter'])
+            name='ckp_history', src=[
+                'host', 'guest'], dst=['arbiter'])
 
 
 class HomoNNClient(ModelBase):

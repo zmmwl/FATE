@@ -1,18 +1,18 @@
-import importlib
 import os
 from pathlib import Path
-
-from federatedml.callbacks.model_checkpoint import ModelCheckpoint
+import importlib
+from federatedml.model_base import ModelBase
+from federatedml.param.homo_nn_param import HomoNNParam
 from federatedml.framework.homo.aggregator.agg_base import arbiter_get_client_agg_class, get_aggregator_pairs, \
     AggregatorBaseServer
 from federatedml.model_base import MetricMeta
-from federatedml.model_base import ModelBase
-from federatedml.model_base import serialize_models
-from federatedml.nn.homo.client import HomoNNTransferVariable
-from federatedml.param.homo_nn_param import HomoNNParam
-from federatedml.protobuf.generated.homo_nn_model_meta_pb2 import HomoNNMeta as HomoMeta
-from federatedml.protobuf.generated.homo_nn_model_param_pb2 import HomoNNParam as HomoParam
 from federatedml.util import LOGGER
+from federatedml.nn.homo.client import HomoNNTransferVariable
+from federatedml.callbacks.model_checkpoint import ModelCheckpoint
+from federatedml.model_base import serialize_models
+from federatedml.protobuf.generated.homo_nn_model_param_pb2 import HomoNNParam as HomoParam
+from federatedml.protobuf.generated.homo_nn_model_meta_pb2 import HomoNNMeta as HomoMeta
+
 
 _ml_base = Path(__file__).resolve().parent.parent.parent
 IMPORT_PATH = 'federatedml.framework.homo.aggregator'
@@ -84,4 +84,5 @@ class HomoNNServer(ModelBase):
 
 
 if __name__ == '__main__':
+
     import_aggregator_modules()
